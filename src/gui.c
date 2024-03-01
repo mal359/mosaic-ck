@@ -4057,16 +4057,21 @@ static int mo_error_handler (Display *dsp, XErrorEvent *event)
       (event->error_code == BadAccess && event->request_code == 88)) 
     return 0;
   else 
-    {
-{char ans[10]; printf("Press RETURN\n"); gets(ans);}
-      /* All other errors are 'fatal'. */
-      XGetErrorText (dsp, event->error_code, buf, 128);
-      fprintf (stderr, "X Error: %s\n", buf);
-      fprintf (stderr, "  Major Opcode:  %d\n", event->request_code);
+  {
+    char ans[10]; 
+    printf("Press RETURN\n"); 
+    
+    fgets(ans, sizeof(ans), stdin);
+    
+    
+    /* All other errors are 'fatal'. */
+    XGetErrorText (dsp, event->error_code, buf, 128);
+    fprintf (stderr, "X Error: %s\n", buf);
+    fprintf (stderr, "  Major Opcode:  %d\n", event->request_code);
 
-      /* Try to close down gracefully. */
-      mo_exit ();
-    }
+    /* Try to close down gracefully. */
+    mo_exit ();
+  }
  return 0; /* never makes it here.... */
 }
 

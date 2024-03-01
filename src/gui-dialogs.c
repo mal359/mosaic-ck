@@ -2753,9 +2753,18 @@ extern void AddChildProcessHandler(int, void (*)(), void *);
 		}
 
 	/* write out source to tmp file with .html extension */
+	char template[] = "/tmp/mosaic_edit_XXXXXX.html";
+        sourceFileName = malloc(strlen(template) + 1);
+
+        int fd = mkstemp(sourceFileName);
+        if (fd == -1) {
+           perror("Error creating temporary file");
+           return mo_fail;
+        }
+	/* tmpnam is dangerous
         sourceFileName = malloc(255);
         strcpy(sourceFileName, tmpnam(NULL));
-        strcat(sourceFileName, ".html");
+        strcat(sourceFileName, ".html"); */
 
 	if (!(fp = fopen(sourceFileName,"w"))) {
 		char *buf, *final, tmpbuf[80];

@@ -1035,15 +1035,33 @@ char *mo_url_canonicalize_local (char *url)
 char *mo_tmpnam (char *url)
 {
   extern void MoCCIAddFileURLToList(char *, char *);
-  char *tmp = (char *)malloc (sizeof (char) * L_tmpnam);
+  
+  char *tmp = NULL;
   char *tmp_dir = get_pref_string(eTMP_DIRECTORY);
+  
+  char templ[L_tmpnam];
+  snprintf(templ, sizeof(templ), "%s/tmp_XXXXXX", 
+  	tmp_dir ? tmp_dir : "/tmp");
+  
+  int fd = mkstemp(templ);
+  
+  unlink(templ);
 
-  tmpnam (tmp);
+  tmp = (char *)malloc(strlen(templ) + 1);
+  if (tmp) 
+    {
+        strcpy(tmp, templ);
+	MoCCIAddFileURLToList(tmp, url);
+        return tmp;
+    }
+  close(fd);
 
   if (!tmp_dir)
     {
       /* Fast path. */
-      if(url) MoCCIAddFileURLToList(tmp,url);
+      tmp = (char *)malloc (sizeof (char) * L_tmpnam);
+      
+      if(tmp && url) MoCCIAddFileURLToList(tmp,url);
       return tmp;
     }
   else
@@ -1060,7 +1078,8 @@ char *mo_tmpnam (char *url)
         }
       
       /* No luck, just punt. */
-      if(url) MoCCIAddFileURLToList(tmp,url);
+      if(oldtmp && url) MoCCIAddFileURLToList(tmp,url);
+      free(oldtmp);
       return tmp;
 
     found_it:

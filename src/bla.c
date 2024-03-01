@@ -205,11 +205,23 @@ HTStream* me = (HTStream*)malloc(sizeof(HTStream));
 
 	me->isa = &CCIout;       
 
-	(void) tmpnam(me->fileName);
-	if (!(me->fp = fopen(me->fileName,"w"))) {
+	char templ[] = "/tmp/CCIout_XXXXXX";
+        int fd = mkstemp(templ);
+        if (fd == -1) 
+	{
+          free(me);
+          return sink;
+        }
+	
+	me->fp = fdopen(fd, "w");
+    
+	if (!(me->fp)) {
 		/*error, can't open tmp file */
+		close(fd);
+                free(me);
 		return(sink);
 		}
+		
 	me->dataType = pres->rep;
 	me->compressed = compressed;
 

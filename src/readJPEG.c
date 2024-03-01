@@ -128,7 +128,11 @@ int i;
 			fprintf(stderr,"cinfo.actual_number_of_colors=%d\n",cinfo.actual_number_of_colors);
 			fprintf(stderr,"colrs[0].red=%d colrs[99].red=%d\n",colrs[0].red,colrs[99].red);
 			fprintf(stderr,"cinfo.colormap[0][0]=%d\n",cinfo.colormap[0][0]);
-			{char dummy[80]; fprintf(stderr,"RETURN\n"); gets(dummy);}
+			{
+			  char dummy[80];
+			  fprintf(stderr,"RETURN\n"); 
+			  fgets(dummy, sizeof(dummy), stdin);
+			}
 		}
 #endif
 
