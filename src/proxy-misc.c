@@ -57,6 +57,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "proxy.h"
+#include "prefs.h"
 
 #define BUFLEN 256
 #define BLANKS " \t\n"

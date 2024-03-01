@@ -68,6 +68,7 @@
 
 #include <X11/Intrinsic.h>
 #include "prefs_defs.h"
+#include "mosaic.h"
 
 typedef struct
 {

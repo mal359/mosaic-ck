@@ -75,7 +75,7 @@ syslibs = -lc
 #### BSD/386
 # xinc = -I/usr/X11/include
 
-xinc = -I/usr/include/X11/Xm
+xinc = -I/usr/include/Xm
 
 #### X library locations.
 # xlibs = -lXm_s -lXmu -lXt_s -lX11_s
@@ -139,7 +139,7 @@ pngdir = /usr
 pnglibdir = $(pngdir)/lib64
 pngincludedir = $(pngdir)/include/libpng12
 #pnglibs = $(pnglibdir)/libpng12.so $(pnglibdir)/libz.so /usr/lib64/libm.so
-pnglibs = -lpng12 -lz -lm
+pnglibs = -lpng -lz -lm
 pngflags =  -I$(pngincludedir) -DHAVE_PNG
 
 #### JPEG SUPPORT

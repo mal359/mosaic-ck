@@ -357,7 +357,7 @@ ExpandEscapes(esc, endp, termination)
 					esc[3] & 255, esc[4] & 255);
 			}
 #endif
-			val = esc;
+			val = *esc;
 			*endp = (char *)(esc + strlen(esc));
 		}
 	}

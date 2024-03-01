@@ -161,7 +161,7 @@ NewJot(w, width, height)
 		JotCurrent->w = w;
 		JotCurrent->width = width;
 		JotCurrent->height = height;
-		JotCurrent->pix = NULL;
+		JotCurrent->pix = 0;
 		JotCurrent->drawing = False;
 		JotCurrent->strokes = NULL;
 		JotCurrent->last_stroke = NULL;
@@ -179,7 +179,7 @@ NewJot(w, width, height)
 		JotCurrent->w = w;
 		JotCurrent->width = width;
 		JotCurrent->height = height;
-		JotCurrent->pix = NULL;
+		JotCurrent->pix = 0;
 		JotCurrent->drawing = False;
 		JotCurrent->strokes = NULL;
 		JotCurrent->last_stroke = NULL;
