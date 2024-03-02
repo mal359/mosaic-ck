@@ -390,8 +390,6 @@ ReadPNG(FILE *infile,int *width, int *height, XColor *colrs)
                 q++; /* skip the alpha pixel */
             }
         }
-        
-        free((char *)png_pixels);
     }
     else {
         
@@ -406,12 +404,10 @@ ReadPNG(FILE *infile,int *width, int *height, XColor *colrs)
             for(j=0; j<*width; j++) {
                 *p++ = *q++; /*palette index*/
             }
-        }
-        
-        free((char *)png_pixels);
-        
+        } 
     }
-
+    
+    free((char *)png_pixels);
     free((png_byte **)row_pointers);
     
         /* clean up after the read, and free any memory allocated */
