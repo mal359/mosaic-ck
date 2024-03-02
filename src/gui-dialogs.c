@@ -591,7 +591,7 @@ char fileBuf[2048],*fileBoxFileName;
   XtVaGetValues(win->save_win,
                 XmNdirSpec, &fbfn,
                 NULL);
-  if (!XmStringGetLtoR(fbfn,XmSTRING_DEFAULT_CHARSET,&fileBoxFileName)) {
+  if (!XmStringGetLtoR(fbfn,XmFONTLIST_DEFAULT_TAG,&fileBoxFileName)) {
 #ifndef DISABLE_TRACE
 	if (srcTrace) {
 		fprintf(stderr,"Internal Error In Save As... PLEASE REPORT THIS!\n");
@@ -603,7 +603,7 @@ char fileBuf[2048],*fileBoxFileName;
   if (*fileBoxFileName && win && win->current_node && win->current_node->url && *(win->current_node->url)) {
         /*no need to check on NULL from getFileName as we know url exists*/
         sprintf(fileBuf,"%s%s",fileBoxFileName,getFileName(win->current_node->url));
-        sfn=XmStringCreateLtoR(fileBuf,XmSTRING_DEFAULT_CHARSET);
+        sfn=XmStringCreateLtoR(fileBuf,XmFONTLIST_DEFAULT_TAG);
         XtVaSetValues(win->save_win,
                       XmNdirSpec, sfn,
                       NULL);
@@ -682,7 +682,7 @@ static XmxCallback (savebinary_win_cb)
   XtUnmanageChild (win->savebinary_win);
 
   XmStringGetLtoR (((XmFileSelectionBoxCallbackStruct *)call_data)->value,
-                   XmSTRING_DEFAULT_CHARSET,
+                   XmFONTLIST_DEFAULT_TAG,
                    &fname);
 
   pathEval (efname, fname);
@@ -735,7 +735,7 @@ char fileBuf[2048],*fileBoxFileName;
 	XtVaGetValues(win->savebinary_win,
 		      XmNdirSpec, &fbfn,
 		      NULL);
-	if (!XmStringGetLtoR(fbfn,XmSTRING_DEFAULT_CHARSET,&fileBoxFileName)) {
+	if (!XmStringGetLtoR(fbfn,XmFONTLIST_DEFAULT_TAG,&fileBoxFileName)) {
 #ifndef DISABLE_TRACE
 		if (srcTrace) {
 			fprintf(stderr,"Internal Error In Save Binary... PLEASE REPORT THIS!\n");
@@ -755,7 +755,7 @@ char fileBuf[2048],*fileBoxFileName;
 			}
 		}
 		sprintf(fileBuf,"%s%s",fileBoxFileName,sptr);
-		sfn=XmStringCreateLtoR(fileBuf,XmSTRING_DEFAULT_CHARSET);
+		sfn=XmStringCreateLtoR(fileBuf,XmFONTLIST_DEFAULT_TAG);
 		XtVaSetValues(win->savebinary_win,
 			      XmNdirSpec, sfn,
 			      NULL);
@@ -784,7 +784,7 @@ static XmxCallback (open_local_win_cb)
   XtUnmanageChild (win->open_local_win);
   
   XmStringGetLtoR (((XmFileSelectionBoxCallbackStruct *)call_data)->value,
-                   XmSTRING_DEFAULT_CHARSET,
+                   XmFONTLIST_DEFAULT_TAG,
                    &fname);
 
   pathEval (efname, fname);
