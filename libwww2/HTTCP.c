@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #endif
 
-#if defined(SVR4) && !defined(SCO) && !defined(linux) && !defined(DGUX)
+#if defined(SVR4) && !defined(sco) && !defined(__linux__) && !defined(DGUX)
 #include <sys/filio.h>
 #endif
 

@@ -1,6 +1,8 @@
 #include "../config.h"
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
 #include <X11/Xlib.h>
 #include "HTMLP.h"
 #include "HTML.h"
@@ -121,7 +123,7 @@ int y;
 
 #ifndef DISABLE_TRACE
 	if (htmlwTrace) {
-		fprintf(stderr,"PourText: \"%s\" width=%d,height=%d\n",text,width,height);
+		fprintf(stderr,"PourText: \"%s\" width=%d,height=%d\n",text,width,*height);
 	}
 #endif
 
@@ -1116,26 +1118,26 @@ int yy;
 				- field->font->max_bounds.descent)/2;
 */
 
-		XSetLineAttributes(XtDisplay(hw),hw->html.drawGC,1,LineSolid,
-			CapNotLast,JoinMiter);
-		XSetBackground(XtDisplay(hw), hw->html.drawGC, eptr->bg);
-		XSetForeground(XtDisplay(hw), hw->html.drawGC, eptr->fg);
-		XSetFont(XtDisplay(hw), hw->html.drawGC, field->font->fid);
-		XmString ttd=XmStringCreateLocalized(field->formattedText[yy]);
-                XmFontList tftd=XmFontListCreate(field->font,XmSTRING_DEFAULT_CHARSET); 
-                XmStringDraw(XtDisplay(hw),
-                            XtWindow(hw->html.view),
-                            tftd,
-                            ttd,
-                            hw->html.drawGC,
-                            placeX,
-                            placeY+baseLine,
-                            XmStringWidth(tftd,ttd),
-                            XmALIGNMENT_BEGINNING,
-                            XmSTRING_DIRECTION_L_TO_R,
-                            NULL);
-               XmStringFree(ttd);
-               XmFontListFree(tftd); 
+		 XSetLineAttributes(XtDisplay(hw),hw->html.drawGC,1,LineSolid,
+		 	CapNotLast,JoinMiter);
+		 XSetBackground(XtDisplay(hw), hw->html.drawGC, eptr->bg);
+		 XSetForeground(XtDisplay(hw), hw->html.drawGC, eptr->fg);
+ 		 XSetFont(XtDisplay(hw), hw->html.drawGC, field->font->fid);
+	         XmString ttd=XmStringCreateLocalized(field->formattedText[yy]);
+                 XmFontList tftd=XmFontListCreate(field->font,XmSTRING_DEFAULT_CHARSET); 
+                 XmStringDraw(XtDisplay(hw),
+                             XtWindow(hw->html.view),
+                             tftd,
+                             ttd,
+                             hw->html.drawGC,
+                             placeX,
+                             placeY+baseLine,
+                             XmStringWidth(tftd,ttd),
+                             XmALIGNMENT_BEGINNING,
+                             XmSTRING_DIRECTION_L_TO_R,
+                             NULL);
+                XmStringFree(ttd);
+                XmFontListFree(tftd); 
 
 
 		placeY += lineHeight;

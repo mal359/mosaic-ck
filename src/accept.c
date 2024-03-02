@@ -54,11 +54,12 @@
 
 #include "../config.h"
 
-#ifdef linux
+#ifdef __linux__
 #define SCREWY_BLOCKING
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -82,7 +83,7 @@
 #endif
 
 #ifdef SVR4
-#ifndef SCO
+#ifndef sco
 #ifndef DGUX
 #include <sys/filio.h>
 #endif

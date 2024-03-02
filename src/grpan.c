@@ -58,7 +58,7 @@
 #include "pan.h"
 #include "mo-www.h"
 /*#ifdef __hpux || __sgi*/
-#if defined(__hpux) || defined(__sgi) || defined(linux)
+#if defined(__hpux) || defined(__sgi) || defined(__linux__)
 #include <time.h>
 #endif
 

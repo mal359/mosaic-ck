@@ -65,6 +65,7 @@ struct timezone __Tz;
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include "HTMLP.h"
 
@@ -5052,7 +5053,7 @@ FormatAll(hw, Fwidth)
 	if (htmlwTrace) {
 #ifndef VMS
 		gettimeofday(&__Tv, &__Tz);
-		fprintf(stderr, "FormatAll enter (%d.%d)\n", __Tv.tv_sec, __Tv.tv_usec);
+		fprintf(stderr, "FormatAll enter (%ld.%ld)\n", __Tv.tv_sec, __Tv.tv_usec);
 #else
                 fprintf(stderr, "FormatAll enter (%s)\n", asctime(localtime(&clock)));
 #endif
@@ -5408,6 +5409,7 @@ PartialRefresh(hw, eptr, start_pos, end_pos, fg, bg)
 	int partial, descent;
 	unsigned long valuemask;
 	XGCValues values;
+	
 	XmString ttd;
 	XmFontList tftd;
 	
@@ -5539,19 +5541,19 @@ PartialRefresh(hw, eptr, start_pos, end_pos, fg, bg)
 		ttd=XmStringCreateLocalized(tdata);
 
 
-               XmStringDraw(XtDisplay(hw),
-                            XtWindow(hw->html.view),
-                            tftd,
-                            ttd,
-                            hw->html.drawGC,
-                            x,
-                            y,
-                           XmStringWidth(tftd,ttd),
-                            XmALIGNMENT_BEGINNING,
-                            XmSTRING_DIRECTION_L_TO_R,
-                            NULL); 
-               XmStringFree(ttd);
-               XmFontListFree(tftd); 
+                XmStringDraw(XtDisplay(hw),
+                             XtWindow(hw->html.view),
+                             tftd,
+                             ttd,
+                             hw->html.drawGC,
+                             x,
+                             y,
+                             XmStringWidth(tftd,ttd),
+                             XmALIGNMENT_BEGINNING,
+                             XmSTRING_DIRECTION_L_TO_R,
+                             NULL); 
+                XmStringFree(ttd);
+                XmFontListFree(tftd); 
 
 	}
 	else {

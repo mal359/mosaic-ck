@@ -27,6 +27,7 @@ dev_::
 	@echo "  ibm -- IBM RS6000 running AIX 4.4 BSD"
 	@echo "  indy -- SGI running IRIX 5.3 and up with MIPSPro 7.x"
 	@echo "  macos -- 64-bit macOS x86_64 with homebrew"
+	@echo "  openbsd -- OpenBSD"
 	@echo "  osx -- 32-bit Mac OS X PPC OR x86"
 	@echo "  ppcmt -- PowerPC running Power MachTen 4.1.4 or higher"
 	@echo "  netbsd -- x86 running netbsd DYNAMIC"
@@ -233,6 +234,14 @@ p_netbsd_static_motif: rm_and_touch
 	$(MAKE) -f makefiles/Makefile.netbsd p_static_motifd DEV_ARCH=netbsd
 q_netbsd_static_motif: rm_and_touch
 	$(MAKE) -f makefiles/Makefile.netbsd q_static_motifd DEV_ARCH=netbsd
+
+dev_openbsd: rm_and_touch openbsd 
+openbsd: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.openbsd DEV_ARCH=openbsd
+p_openbsd: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.openbsd purifyd DEV_ARCH=openbsd
+q_openbsd: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.openbsd quantifyd DEV_ARCH=openbsd
 
 dev_unicos: rm_and_touch unicos
 unicos: rm_and_touch

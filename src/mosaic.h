@@ -185,14 +185,32 @@ typedef enum
 #define GLOBAL_TYPE_MAP "/usr/local/lib/mosaic/mailcap"
 #endif
 
+#if defined(_AIX)
+#define MO_MACHINE_TYPE "AIX"
+#endif
 #if defined(__MACHTEN__)
 #define MO_MACHINE_TYPE "PowerMachTen"
 #endif
 #if defined(__darwin__) || defined(__APPLE__)
 #define MO_MACHINE_TYPE "Mac OS X"
 #endif
-#if defined(bsdi)
+#if defined(__bsdi__)
 #define MO_MACHINE_TYPE "BSD/OS"
+#endif
+#if defined(__FreeBSD__)
+#define MO_MACHINE_TYPE "FreeBSD"
+#endif
+#if defined(__NetBSD__)
+#define MO_MACHINE_TYPE "NetBSD"
+#endif
+#if defined(__OpenBSD__)
+#define MO_MACHINE_TYPE "OpenBSD"
+#endif
+#if defined(__DragonFly__)
+#define MO_MACHINE_TYPE "DragonFly BSD"
+#endif
+#if defined(__GNU__) || defined(__gnu_hurd__)
+#define MO_MACHINE_TYPE "GNU Hurd"
 #endif
 #if defined(__hpux)
 #define MO_MACHINE_TYPE "HP-UX"
@@ -203,7 +221,7 @@ typedef enum
 #if defined(ultrix)
 #define MO_MACHINE_TYPE "DEC Ultrix"
 #endif
-#if defined(linux)
+#if defined(__linux__)
 #define MO_MACHINE_TYPE "Linux"
 #endif
 #if defined(_IBMR2)
@@ -212,6 +230,9 @@ typedef enum
 #if defined(sun) && !defined(SOLARIS)
 #define MO_MACHINE_TYPE "Sun"
 #else
+#if defined(__illumos__)
+#define MO_MACHINE_TYPE "illumos"
+#else
 #if defined(SOLARIS)
 #define MO_MACHINE_TYPE "SOLARIS"
 #endif
@@ -219,8 +240,8 @@ typedef enum
 #if defined(__alpha)
 #define MO_MACHINE_TYPE "DEC Alpha"
 #endif
-#if defined(NEXT)
-#define MO_MACHINE_TYPE "NeXT BSD"
+#if defined(NeXT)
+#define MO_MACHINE_TYPE "NeXTSTEP"
 #endif
 #if defined(cray)
 #define MO_MACHINE_TYPE "Cray"
@@ -231,7 +252,7 @@ typedef enum
 #if defined(NeXT)
 #define MO_MACHINE_TYPE "NeXT"
 #endif
-#if defined (SCO)
+#if defined (sco)
 #if defined (_SCO_DS)
 #define MO_MACHINE_TYPE "SCO OpenServer 5"
 #else /* _SCO_DS */

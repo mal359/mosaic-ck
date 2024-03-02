@@ -333,11 +333,7 @@ clean_white_space(txt)
  * people that Unicode/UTF-8 doesn't come for free.
  */
 int
-  ExpandEscapes(esc, endp, termination,val)
-	char *esc;
-	char **endp;
-	int termination;
-	char val[4]; 
+  ExpandEscapes(char *esc, char **endp, int termination, char *val)
 {
 	int cnt;
 	unsigned int ucs,lng=0;
@@ -378,10 +374,11 @@ int
 					fprintf(stderr, "... match: %c\n",
 						UTF8Escapes[cnt].value);
 */
-					val = UTF8Escapes[cnt].value;
+					val[0] = UTF8Escapes[cnt].value;
+					val[1] = '\0';
 					*endp = (char *)(esc +
 						strlen(UTF8Escapes[cnt].tag));
-					return(val); /* RIGHT NOW! */
+					return(*val); /* RIGHT NOW! */
 				}
 			}
 			cnt++;
@@ -397,7 +394,8 @@ int
 					esc[3] & 255, esc[4] & 255);
 			}
 #endif
-			val = *esc;
+			val[0] = *esc;
+			val[1] = '\0';
 			*endp = (char *)(esc + strlen(esc));
 		}
 	}
@@ -1065,7 +1063,7 @@ HTMLParse(old_list, str, hw)
 	if (htmlwTrace) {
 #ifndef VMS
 		gettimeofday(&Tv, &Tz);
-		fprintf(stderr, "HTMLParse enter (%d.%d)\n", Tv.tv_sec, Tv.tv_usec);
+		fprintf(stderr, "HTMLParse enter (%ld.%ld)\n", Tv.tv_sec, Tv.tv_usec);
 #else
                 fprintf(stderr, "HTMLParse enter (%s)\n", asctime(localtime(&clock)));
 #endif
@@ -1296,7 +1294,7 @@ HTMLParse(old_list, str, hw)
 	if (htmlwTrace) {
 #ifndef VMS
 		gettimeofday(&Tv, &Tz);
-		fprintf(stderr, "HTMLParse exit (%d.%d)\n", Tv.tv_sec, Tv.tv_usec);
+		fprintf(stderr, "HTMLParse exit (%ld.%ld)\n", Tv.tv_sec, Tv.tv_usec);
 #else
                 fprintf(stderr, "HTMLParse exit (%s)\n", asctime(localtime(&clock)));
 #endif

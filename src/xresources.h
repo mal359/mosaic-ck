@@ -170,9 +170,21 @@ static XtResource resources[] = {
       offset (track_visited_anchors), XtRString, "True" },
 
   { "uncompressCommand", "UncompressCommand", XtRString, sizeof (char *), 
+#if defined(__linux__) || (__FreeBSD__) || (__NetBSD__)
+      offset (uncompress_command), XtRString, "uncompress.real" },
+#else
       offset (uncompress_command), XtRString, "uncompress" },
+#endif
   { "gunzipCommand", "GunzipCommand", XtRString, 
+#if defined(__linux__) || (__FreeBSD__) || (__NetBSD__)
+      sizeof (char *), offset (gunzip_command), XtRString, "gzip -d -f -n" },
+#else
       sizeof (char *), offset (gunzip_command), XtRString, "gunzip -f -n" },
+#endif
+  { "bunzipCommand", "BunzipCommand", XtRString,
+      sizeof (char *), offset (bunzip_command), XtRString, "bzip2 -d -f" },
+  { "xunzipCommand", "XunzipCommand", XtRString,
+      sizeof (char *), offset (xunzip_command), XtRString, "xz -d -f" },
 
 #if defined(__hpux)
   { "recordCommandLocation", "RecordCommandLocation", XtRString, 

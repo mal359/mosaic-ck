@@ -19,7 +19,7 @@ RANLIB = ranlib
 #### On Sun's, this should be gcc (ANSI required).
 CC = gcc
 
-#### Linker Flags 
+#### Linker Flags
 ldflags =
 
 #### For a few files in the source, some compilers may need to be kicked
@@ -35,12 +35,12 @@ knrflag =
 #### For NeXT, do -DNEXT
 #### For HP/UX, do -Aa -D_HPUX_SOURCE
 #### For Dell SVR4, do -DSVR4
-#### For Solaris, do -DSVR4 
+#### For Solaris, do -DSVR4
 #### For Esix 4.0.4 and Solaris x86 2.1, do -DSVR4
 #### For Convex whatever, do -DCONVEX
 #### For SCO ODT 3.0, do -DSCO -DSVR4 -DMOTIF1_2
 #### For Motorola SVR4, do -DSVR4 -DMOTOROLA -DMOTIF1_2
-sysconfigflags = -DMOTIF1_2 -DLINUX -DUSE_STDARG -DHAVE_STRERROR -DHAVE_XKB
+sysconfigflags = -DMOTIF1_2 -D__OpenBSD__
 
 #### System libraries.
 # syslibs = -lPW -lsun -lmalloc
@@ -74,8 +74,8 @@ syslibs = -lc
 # xinc = -I/usr/include/X11
 #### BSD/386
 # xinc = -I/usr/X11/include
-
-xinc = -I/usr/include/Xm
+#### OpenBSD
+xinc = -I/usr/X11R6/include -I/usr/local/include
 
 #### X library locations.
 # xlibs = -lXm_s -lXmu -lXt_s -lX11_s
@@ -97,7 +97,7 @@ xinc = -I/usr/include/Xm
 #### For Linux -- You must set "LD_LIBRARY_PATH" to include the path to
 ####   your X libs, or some may not be found by the loader. Check the
 ####   loader with "ldd Mosaic" after you build.
-xlibs = -L/usr/X11R6/lib -lXext -lXpm -lXm -lXmu -lXt -lX11 -lICE -lSM
+xlibs = -L/usr/X11R6/lib -L/usr/local/lib -lXext -lXpm -lXm -lXmu -lXt -lX11 -lICE -lSM
 static_motif_xlibs = -L/usr/X11R6/lib -lXext -lXpm /usr/X11R6/lib/libXm.a -lXmu -lXt -lX11 -lICE -lSM
 static_xlibs = /usr/X11R6/lib/libXpm.a /usr/X11R6/lib/libXm.a /usr/X11R6/lib/libXmu.a /usr/X11R6/lib/libXt.a /usr/X11R6/lib/libXext.a /usr/X11R6/lib/libX11.a /usr/X11R6/lib/libSM.a /usr/X11R6/lib/libICE.a
 #### For BSD/386:
@@ -133,31 +133,33 @@ static_xlibs = /usr/X11R6/lib/libXpm.a /usr/X11R6/lib/libXm.a /usr/X11R6/lib/lib
 
 #### PNG SUPPORT
 #### For inline PNG support, the following should be defined:
-#### Note that Mosaic only speaks libpng12.
+#### The libraries currently used are PNGLIB 0.81 and ZLIB 0.95
 
-pngdir = /usr
-pnglibdir = $(pngdir)/lib64
-pngincludedir = $(pngdir)/include/libpng12
-#pnglibs = $(pnglibdir)/libpng12.so $(pnglibdir)/libz.so /usr/lib64/libm.so
+# SAM pngdir = /xdev/mosaic/libpng/linux
+# SAM pnglibdir = $(pngdir)/lib
+# SAM pngincludedir = $(pngdir)/include
+# SAM pnglibs = $(pnglibdir)/libpng.a $(pnglibdir)/libz.a /usr/lib/libm.a
+# SAM pngflags =  -I$(pngincludedir) -DHAVE_PNG
 pnglibs = -lpng -lz -lm
-pngflags =  -I$(pngincludedir) -DHAVE_PNG
+pngflags = -DHAVE_PNG
 
 #### JPEG SUPPORT
 #### For inline JPEG support, the following should be defined:
 #### The library used is Independent JPEG Group (IJG's) 5.0a.
 
-jpegdir = /usr
-#jpeglibs = $(jpegdir)/lib64/libjpeg.so
+# SAM jpegdir = /xdev/mosaic/libjpeg/linux
+# SAM jpeglibs = $(jpegdir)/lib/libjpeg.a
+ #SAM jpegflags = -I$(jpegdir)/include -DHAVE_JPEG
 jpeglibs = -ljpeg
-jpegflags = -I$(jpegdir)/include -DHAVE_JPEG
+jpegflags = -DHAVE_JPEG
 
 
 #### KERBEROS SUPPORT
 ####
-#### If you want Mosaic to support Kerberos authentication, set the 
+#### If you want Mosaic to support Kerberos authentication, set the
 #### following flags appropriately.  You can support Kerberos V4 and/or V5,
 #### although it's most likely that your realm supports one or the other.
-#### To enable DES-encryption of HTTP messages via Kerberos key exchange, 
+#### To enable DES-encryption of HTTP messages via Kerberos key exchange,
 #### define the KRB-ENCRYPT flag.
 
 ##krb4dir   = /usr/athena
@@ -172,7 +174,7 @@ jpegflags = -I$(jpegdir)/include -DHAVE_JPEG
 
 #Do not comment out.
 krbflags  = $(krb4flags) $(krb5flags)
-krblibs   = $(krb4libs) $(krb5libs) 
+krblibs   = $(krb4libs) $(krb5libs)
 
 
 #### DIRECT WAIS SUPPORT
@@ -182,7 +184,7 @@ krblibs   = $(krb4libs) $(krb5libs)
 #### recommend linking with CNIDR's freeWAIS 0.5 distribution; other
 #### WAIS distributions may work but we have not tested them with
 #### Mosaic.  freeWAIS 0.5 can currently (Sept.1995) be found at
-#### ftp://sunsite.unc.edu/pub/wais/servers/freeWAIS 
+#### ftp://sunsite.unc.edu/pub/wais/servers/freeWAIS
 
 #### If you do not wish to link to the WAIS libraries, then comment
 #### the following lines out.  Mosaic will then communicate with WAIS
@@ -204,8 +206,7 @@ krblibs   = $(krb4libs) $(krb5libs)
 #### . If you want to define the default Mosaic documentation directory
 ####   (should be a URL), set -DDOCS_DIRECTORY_DEFAULT=\\\"url\\\"
 #### . Other things you can define are spelled out in src/mosaic.h.
-#### . See src/gui.c for SCROLL_FASTER (seems only needed for linux)
-customflags = -DSCROLL_FASTER
+customflags =
 
 
 
@@ -224,27 +225,22 @@ customflags = -DSCROLL_FASTER
 
 # ---------------------- END OF CUSTOMIZABLE OPTIONS -------------------------
 
-# Silence warnings we don't care about because we need backwards compat.
-CFLAGS = -fcommon -g $(sysconfigflags) $(prereleaseflags) -Wno-implicit-function-declaration -Wno-implicit-int -include stdlib.h -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
+# Disable certain warnings as we don't care for them
+CWARNINGS = -Wall \
+	-Wno-parentheses \
+	-Wno-switch -Wno-switch-enum \
+	-Wno-char-subscripts
+# \
+#	-Wno-unused-result
 
-# Add libcurl if it exists. Check both /lib and /lib64.
-# NYI
-ifneq ("$(wildcard /lib*/libcurl*)","")
-	CURLLIBS := -lcurl
-	CURLDEFS := -DHAS_CURL
-else
-	CURLDEFS :=
-	CURLLIBS :=
-endif
+CFLAGS = -g $(sysconfigflags) $(prereleaseflags) $(CWARNINGS) $(customflags)
 
 # Don't worry about these -- for development purposes only.
 PURIFY = purify
 QUANTIFY = quantify
 
-# This is the only target that really works, honestly.
-default: src
+default: $(dtmdirs) libwww2 libXmx libhtmlw libnut src
 	@echo \*\*\* Welcome to NCSA Mosaic.
-
 purifyd: $(dtmdirs) libwww2 libXmx libhtmlw libnut src-purifyd
 	@echo \*\*\* Welcome to Purify'd NCSA Mosaic.
 quantifyd: $(dtmdirs) libwww2 libXmx libhtmlw libnut src-quantifyd
@@ -278,10 +274,7 @@ libnut::
 	@echo --- Building libnut
 	cd libnut; $(MAKE) CC=$(CC) RANLIB=$(RANLIB) CFLAGS="$(CFLAGS) $(knrflag)"
 
-FORCE:
-
-#src::
-src: FORCE $(dtmdirs) libwww2 libXmx libhtmlw libnut
+src::
 	@echo --- Building src
 	cd src; $(MAKE) CC=$(CC) RANLIB=$(RANLIB) LDFLAGS="$(ldflags)" CFLAGS="$(CFLAGS) $(customflags) $(xinc) $(jpegflags) $(dtmflags) $(hdfflags) $(pngflags) $(krbflags) -I.. -I../libXmx -I../libwww2" AUX_CFLAGS=$(knrflag) X_LIBS="$(xlibs)" SYS_LIBS="$(sockslibs) $(syslibs)" DTM_LIBS="$(dtmlibs)" HDF_LIBS="$(hdflibs)" WAIS_LIBS="$(waislibs)" LIBWWW_DIR=../libwww2 JPEG_LIBS="$(jpeglibs)" PNG_LIBS="$(pnglibs)" KRB_LIBS="$(krblibs)" LIBNUT_DIR=../libnut MOSAIC="Mosaic"
 
