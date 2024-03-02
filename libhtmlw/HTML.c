@@ -4101,7 +4101,7 @@ _HTMLInput(
 #else
 	on_gadget = (_XmInputForGadget((CompositeWidget)hw,
 #endif /* MOTIF1_2 */
-				event->xbutton.x, event->xbutton.y) != NULL);
+		event->xbutton.x, event->xbutton.y) != NULL);
 
 	if (on_gadget)
 	{

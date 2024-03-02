@@ -243,7 +243,6 @@ static Pixmap PixmapFromData(Widget wid, unsigned char *data, int width,
                              int height, XColor *colrs, int gray);
 
 
-#define PBUF 1024
 /* Quick 'n Dirty XPM reader */
 static char **LoadPixmapFile(char *file)
 {
@@ -259,12 +258,13 @@ static char **LoadPixmapFile(char *file)
         return NULL;
     }
 
-    if(!fgets(buf,PBUF,fp) && strncmp("/* XPM */",buf,9)) {
+    if(!fgets(buf, sizeof(buf), fp) && strncmp("/* XPM */",buf,9)) {
         return NULL;
     }
 
     while(!feof(fp)) {
-        if(!fgets(buf,PBUF,fp)) return NULL;
+        if(!fgets(buf, sizeof(buf), fp)) 
+	  return NULL;
         if(buf[0]=='"') {
             
             if(sscanf(&buf[1],"%d %d %d ",&x,&y,&c) != 3) {
@@ -285,7 +285,7 @@ static char **LoadPixmapFile(char *file)
             pdata[0] = strdup(&buf[1]);
 
             for(i=1;i<(y+c+1);i++) {
-                if(feof(fp) || !fgets(buf,PBUF,fp)){
+                if(feof(fp) || !fgets(buf, sizeof(buf), fp)){
                     fclose(fp);
                     return NULL;
                 }

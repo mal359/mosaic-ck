@@ -1666,7 +1666,7 @@ AnchorTag(ptrp, startp, endp)
 			ptr++;
 		}
 	}
-	else
+		else
 	{
 		while ((!isspace((int)*ptr))&&(*ptr != '\0'))
 		{

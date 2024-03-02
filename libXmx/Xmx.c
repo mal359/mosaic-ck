@@ -51,6 +51,12 @@
  * Comments and questions are welcome and can be sent to                    *
  * mosaic-x@ncsa.uiuc.edu.                                                  *
  ****************************************************************************/
+#ifndef _UNICOS
+#include <stdint.h>
+#endif
+ 
+#include <Xm/RepType.h>
+
 #include "../config.h"
 #include "XmxP.h"
 
@@ -126,7 +132,9 @@ XmxExtractToken (int cd)
 {
   /* Pull the low 16 bits, if uniqid has been set. */
   if (Xmx_uniqid_has_been_set)
-    return ((cd << 16) >> 16);
+    /* This doesn't work on a non-32-bit system */
+    /*return ((cd << 16) >> 16);*/
+    return cd & 0xffff;
   else
     return cd;
 }
@@ -134,8 +142,8 @@ XmxExtractToken (int cd)
 /* This function should be called by every Xmx routine
    when registering a callback or event handler. */
 /* This is PRIVATE but accessible to Xmx2.c also. */
-int
-_XmxMakeClientData (int token)
+uintptr_t
+_XmxMakeClientData (uintptr_t token)
 {
   if (Xmx_uniqid_has_been_set)
     return ((Xmx_uniqid << 16) | token);
@@ -1636,7 +1644,7 @@ int XmxModalYesOrNo (Widget parent, XtAppContext app,
   title = XmStringCreateLtoR ("Prompt", XmSTRING_DEFAULT_CHARSET);
   
   XmxSetArg (XmNdialogTitle, (XtArgVal)title);
-  XmxSetArg (XmNdialogStyle, XmDIALOG_FULL_APPLICATION_MODAL);
+  XmxSetArg (XmNdialogStyle, (XtArgVal)XmDIALOG_FULL_APPLICATION_MODAL);
   XmxSetArg (XmNmessageString, (XtArgVal)question);
   XmxSetArg (XmNokLabelString, (XtArgVal)yes);
   XmxSetArg (XmNcancelLabelString, (XtArgVal)no);
@@ -1713,7 +1721,7 @@ void XmxMakeInfoDialogWait (Widget parent, XtAppContext app,
   title = XmStringCreateLtoR (titlestr, XmSTRING_DEFAULT_CHARSET);
   
   XmxSetArg (XmNdialogTitle, (XtArgVal)title);
-  XmxSetArg (XmNdialogStyle, XmDIALOG_FULL_APPLICATION_MODAL);
+  XmxSetArg (XmNdialogStyle, (XtArgVal)XmDIALOG_FULL_APPLICATION_MODAL);
   XmxSetArg (XmNmessageString, (XtArgVal)info);
   XmxSetArg (XmNokLabelString, (XtArgVal)yes);
   XmxSetArg (XmNsymbolPixmap, (XtArgVal)dialogInformation);
@@ -1762,7 +1770,7 @@ void XmxMakeErrorDialogWait (Widget parent, XtAppContext app,
   title = XmStringCreateLtoR (titlestr, XmSTRING_DEFAULT_CHARSET);
   
   XmxSetArg (XmNdialogTitle, (XtArgVal)title);
-  XmxSetArg (XmNdialogStyle, XmDIALOG_FULL_APPLICATION_MODAL);
+  XmxSetArg (XmNdialogStyle, (XtArgVal)XmDIALOG_FULL_APPLICATION_MODAL);
   XmxSetArg (XmNmessageString, (XtArgVal)info);
   XmxSetArg (XmNokLabelString, (XtArgVal)yes);
   XmxSetArg (XmNsymbolPixmap, (XtArgVal)dialogError);
@@ -1813,7 +1821,7 @@ char *XmxModalPromptForString (Widget parent, XtAppContext app,
   title = XmStringCreateLtoR ("Prompt", XmSTRING_DEFAULT_CHARSET);
   
   XmxSetArg (XmNdialogTitle, (XtArgVal)title);
-  XmxSetArg (XmNdialogStyle, XmDIALOG_FULL_APPLICATION_MODAL);
+  XmxSetArg (XmNdialogStyle, (XtArgVal)XmDIALOG_FULL_APPLICATION_MODAL);
   XmxSetArg (XmNselectionLabelString, (XtArgVal)question);
   XmxSetArg (XmNokLabelString, (XtArgVal)yes);
   XmxSetArg (XmNcancelLabelString, (XtArgVal)no);
@@ -1979,7 +1987,7 @@ char *XmxModalPromptForPassword (Widget parent, XtAppContext app,
   title = XmStringCreateLtoR ("Prompt", XmSTRING_DEFAULT_CHARSET);
   
   XmxSetArg (XmNdialogTitle, (XtArgVal)title);
-  XmxSetArg (XmNdialogStyle, XmDIALOG_FULL_APPLICATION_MODAL);
+  XmxSetArg (XmNdialogStyle, (XtArgVal)XmDIALOG_FULL_APPLICATION_MODAL);
   XmxSetArg (XmNselectionLabelString, (XtArgVal)question);
   XmxSetArg (XmNokLabelString, (XtArgVal)yes);
   XmxSetArg (XmNcancelLabelString, (XtArgVal)no);

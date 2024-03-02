@@ -54,8 +54,8 @@
  * mosaic-x@ncsa.uiuc.edu.                                                  *
  ****************************************************************************/
 
-#ifndef HTML_H
-#define HTML_H
+#ifndef HTMLW_HTML_H
+#define HTMLW_HTML_H
 
 #ifdef MOTIF
 #include <Xm/Xm.h>
@@ -656,5 +656,5 @@ extern int HTMLLoadNextDelayedImage(HTMLWidget hw);
 
 
 
-#endif /* HTML_H */
+#endif /* HTMLW_HTML_H */
 

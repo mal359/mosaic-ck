@@ -17,24 +17,28 @@ help: dev_
 dev_::
 	@echo "You must specify one of the following or set the environment variable"
 	@echo "[DEV_ARCH] to one of the following:"
-	@echo "-- CURRENTLY SUPPORTED --"
-	@echo "  linux -- Linux 4.x or 5.x, shared libraries"
-	@echo "  macos -- 64-bit macOS x86_64 with homebrew"
-	@echo "  ppcmt -- PowerPC running Power MachTen 4.1.4 or higher"
-	@echo "  osx -- 32-bit Mac OS X 10.4+ PPC OR x86 (earlier possible but unsupported)"
-	@echo "-- USE SOMETHING ELSE UNLESS YOU KNOW WHAT YOU'RE DOING --"
-	@echo "  uosx -- Universal Binary Mac OS X 10.4+"
-	@echo "-- ARCHIVAL (AT YOUR OWN RISK) --"
 	@echo "  alpha -- DEC Alpha AXP running OSF/1"
 	@echo "  bsdi -- x86 running BSDI BSD/OS 2.1"
 	@echo "  dec -- DEC 2100 running Ultrix 4.3"
+	@echo "  freebsd -- x86 running freebsd DYNAMIC"
+	@echo "  freebsd-static -- x86 running freebsd ALL STATIC"
+	@echo "  freebsd-static-motif -- x86 running freebsd STATIC MOTIF"	
 	@echo "  hp -- HP 9000/735 running HP-UX A.09.01"
 	@echo "  ibm -- IBM RS6000 running AIX 4.4 BSD"
 	@echo "  indy -- SGI running IRIX 5.3 and up with MIPSPro 7.x"
+	@echo "  macos -- 64-bit macOS x86_64 with homebrew"
+	@echo "  osx -- 32-bit Mac OS X PPC OR x86"
+	@echo "  ppcmt -- PowerPC running Power MachTen 4.1.4 or higher"
+	@echo "  netbsd -- x86 running netbsd DYNAMIC"
+	@echo "  netbsd-static -- x86 running netbsd ALL STATIC"
+	@echo "  netbsd-static-motif -- x86 running netbsd STATIC MOTIF"
+	@echo "  linux -- Linux 4.x or 5.x, shared libraries"
 	@echo "  linux1 -- x86 running Linux 1.2.13 DYNAMIC"
 	@echo "  linux1-static -- x86 running Linux 1.2.13 ALL STATIC"
 	@echo "  linux1-static-motif -- x86 running Linux 1.2.13 STATIC MOTIF"
 	@echo "  linux2 -- Linux 2.x+"
+	@echo "  unicos -- Cray PVP running UNICOS (tested with 10.0 and MOTIF)"
+	@echo "  uosx -- Universal Binary Mac OS X 10.4+"
 	@echo "  sco -- x86 running SCO System V 3.2"
 	@echo "  sgi -- SGI Iris running IRIS 4.0.2"
 	@echo "  solaris-23 -- SPARCstation 20 running Solaris 2.3"
@@ -60,7 +64,6 @@ rm_and_touch:
 	@rm -f config.h
 	@touch config.h
 
-####### THESE ARE THE SUPPORTED TARGETS! #######
 
 dev_uosx: rm_and_touch uosx
 uosx: rm_and_touch
@@ -94,15 +97,6 @@ p_ppcmt: rm_and_touch
 q_ppcmt: rm_and_touch
 	$(MAKE) -f makefiles/Makefile.ppcmt quantifyd DEV_ARCH=ppcmt
 
-dev_linux: rm_and_touch linux
-linux: rm_and_touch
-	$(MAKE) -f makefiles/Makefile.linux DEV_ARCH=linux
-p_linux: rm_and_touch
-	$(MAKE) -f makefiles/Makefile.linux purifyd DEV_ARCH=linux
-q_linux: rm_and_touch
-	$(MAKE) -f makefiles/Makefile.linux quantifyd DEV_ARCH=linux
-
-####### THESE ARE NOT! #######
 
 dev_alpha: rm_and_touch alpha
 alpha: rm_and_touch
@@ -128,6 +122,30 @@ p_dec: rm_and_touch
 q_dec: rm_and_touch
 	$(MAKE) -f makefiles/Makefile.dec quantifyd DEV_ARCH=dec
 
+dev_freebsd: rm_and_touch freebsd
+freebsd: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.freebsd DEV_ARCH=freebsd
+p_freebsd: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.freebsd purifyd DEV_ARCH=freebsd
+q_freebsd: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.freebsd quantifyd DEV_ARCH=freebsd
+
+dev_freebsd_static: rm_and_touch freebsd_static
+freebsd_static: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.freebsd staticd DEV_ARCH=freebsd
+p_freebsd_static: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.freebsd p_staticd DEV_ARCH=freebsd
+q_freebsd_static: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.freebsd q_staticd DEV_ARCH=freebsd
+
+dev_freebsd_static_motif: rm_and_touch freebsd_static_motif
+freebsd_static_motif: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.freebsd static_motifd DEV_ARCH=freebsd
+p_freebsd_static_motif: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.freebsd p_static_motifd DEV_ARCH=freebsd
+q_freebsd_static_motif: rm_and_touch
+
+
 dev_hp: rm_and_touch hp
 hp: rm_and_touch
 	$(MAKE) -f makefiles/Makefile.hp DEV_ARCH=hp
@@ -152,7 +170,15 @@ p_indy: rm_and_touch
 q_indy: rm_and_touch
 	$(MAKE) -f makefiles/Makefile.indy quantifyd DEV_ARCH=indy
 
-dev_linux2: rm_and_touch linux
+dev_linux: rm_and_touch linux
+linux: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.linux DEV_ARCH=linux
+p_linux: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.linux purifyd DEV_ARCH=linux
+q_linux: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.linux quantifyd DEV_ARCH=linux
+
+dev_linux2: rm_and_touch linux2
 linux2: rm_and_touch
 	$(MAKE) -f makefiles/Makefile.linux2 DEV_ARCH=linux
 p_linux2: rm_and_touch
@@ -183,6 +209,38 @@ p_linux1_static_motif: rm_and_touch
 	$(MAKE) -f makefiles/Makefile.linux1 p_static_motifd DEV_ARCH=linux
 q_linux1_static_motif: rm_and_touch
 	$(MAKE) -f makefiles/Makefile.linux1 q_static_motifd DEV_ARCH=linux
+
+dev_netbsd: rm_and_touch netbsd
+netbsd: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.netbsd DEV_ARCH=netbsd
+p_netbsd: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.netbsd purifyd DEV_ARCH=netbsd
+q_netbsd: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.netbsd quantifyd DEV_ARCH=netbsd
+
+dev_netbsd_static: rm_and_touch netbsd_static
+netbsd_static: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.netbsd staticd DEV_ARCH=netbsd
+p_netbsd_static: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.netbsd p_staticd DEV_ARCH=netbsd
+q_netbsd_static: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.netbsd q_staticd DEV_ARCH=netbsd
+
+dev_netbsd_static_motif: rm_and_touch netbsd_static_motif
+netbsd_static_motif: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.netbsd static_motifd DEV_ARCH=netbsd
+p_netbsd_static_motif: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.netbsd p_static_motifd DEV_ARCH=netbsd
+q_netbsd_static_motif: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.netbsd q_static_motifd DEV_ARCH=netbsd
+
+dev_unicos: rm_and_touch unicos
+unicos: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.unicos static_motifd DEV_ARCH=unicos
+p_unicos: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.unicos p_static_motifd DEV_ARCH=unicos
+q_unicos: rm_and_touch
+	$(MAKE) -f makefiles/Makefile.unicos q_static_motifd DEV_ARCH=unicos
 
 dev_sco: rm_and_touch sco
 sco: rm_and_touch

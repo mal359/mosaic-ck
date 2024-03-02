@@ -203,18 +203,11 @@ PUBLIC HTStream* CCIPresent ARGS5(
 {
 HTStream* me = (HTStream*)malloc(sizeof(HTStream));
 
-	me->isa = &CCIout;       
-
-	char templ[] = "/tmp/CCIout_XXXXXX";
-        int fd = mkstemp(templ);
-        if (fd == -1) 
-	{
-          free(me);
-          return sink;
-        }
+	me->isa = &CCIout; 
+	
+	int fd = mkstemps(me->fileName, 5);
 	
 	me->fp = fdopen(fd, "w");
-    
 	if (!(me->fp)) {
 		/*error, can't open tmp file */
 		close(fd);

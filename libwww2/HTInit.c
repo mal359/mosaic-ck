@@ -13,9 +13,15 @@
 #include "tcp.h"
 #include "HTUtils.h"
 
+#ifdef __GLIBC__
+#include <features.h>
+#endif
+
 #ifndef DISABLE_TRACE
 extern int www2Trace;
 #endif
+
+int HTLoadTypesConfigFile(char *);
 
 /* Reread config files. */
 PUBLIC void HTReInit NOARGS
@@ -220,7 +226,7 @@ static char *Cleanse(char *s) /* no leading or trailing space, all lower case */
     return(news);
 }
 
-static ProcessMailcapEntry(FILE *fp, struct MailcapEntry *mc)
+static int ProcessMailcapEntry(FILE *fp, struct MailcapEntry *mc)
 {
     int rawentryalloc = 2000, len;
     char *rawentry, *s, *t, *LineBuf;
@@ -294,7 +300,7 @@ static ProcessMailcapEntry(FILE *fp, struct MailcapEntry *mc)
 }
 
 
-static ProcessMailcapFile(char *file)
+static int ProcessMailcapFile(char *file)
 {
     struct MailcapEntry mc;
     FILE *fp;
@@ -489,9 +495,11 @@ PUBLIC void HTFileInit NOARGS
 
 #define MAX_STRING_LEN 256
 
-static int mgetline(char *s, int n, FILE *f) 
+#ifdef _UNICOS
+static int getline(char **ps, size_t *pn, FILE *f)
 {
   register int i=0;
+  char *s = *ps;
   
   while(1) 
     {
@@ -500,7 +508,7 @@ static int mgetline(char *s, int n, FILE *f)
       if(s[i] == CR)
         s[i] = fgetc(f);
     
-      if((s[i] == EOF) || (s[i] == LF) || (i == (n-1)))
+      if((s[i] == EOF) || (s[i] == LF) || (i == (*pn-1)))
         {
           s[i] = '\0';
           return (feof(f) ? 1 : 0);
@@ -510,6 +518,7 @@ static int mgetline(char *s, int n, FILE *f)
 
   /* NOTREACHED */
 }
+#endif
 
 static void getword(char *word, char *line, char stop, char stop2) 
 {
@@ -534,6 +543,7 @@ static void getword(char *word, char *line, char stop, char stop2)
 int HTLoadExtensionsConfigFile (char *fn)
 {
   char l[MAX_STRING_LEN],w[MAX_STRING_LEN],*ct,*ptr;
+  size_t len = MAX_STRING_LEN;
   FILE *f;
   int x, count = 0;
 
@@ -552,8 +562,13 @@ int HTLoadExtensionsConfigFile (char *fn)
 
       return -1;
     }
-
-  while(!(mgetline(l,MAX_STRING_LEN,f))) 
+#ifdef _UNICOS
+  while(!(getline(l, MAX_STRING_LEN, f)))
+#elif defined (__GLIBC__) && (_POSIX_C_SOURCE >= 200809L)
+  while(!(getline((char **)&l, (size_t *)MAX_STRING_LEN, f)))
+#else
+  while(!(getline((char**)&l, &len, f)))
+#endif
     {
       /* always get rid of leading white space for "line" -- SWP */
       for (ptr=l; *ptr && isspace(*ptr); ptr++);

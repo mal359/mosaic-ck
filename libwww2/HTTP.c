@@ -4,6 +4,9 @@
 #include "../config.h"
 #include "HTTP.h"
 
+#include "../src/mosaic.h"
+#include "../src/mo-www.h"
+
 #define HTTP_VERSION	"HTTP/1.0"
 
 #define INIT_LINE_SIZE		16384	/* Start with line buffer this big */
@@ -112,8 +115,7 @@ PUBLIC int HTLoadHTTP ARGS4 (
   char crlf[3];			/* A CR LF equivalent string */
   HTStream *target;		/* Unconverted data */
   HTFormat format_in;			/* Format arriving in the message */
-  
-  BOOL had_header;		/* Have we had at least one header? */
+
   char *line_buffer;
   char *line_kept_clean;
   BOOL extensions;		/* Assume good HTTP server */
@@ -160,7 +162,6 @@ PUBLIC int HTLoadHTTP ARGS4 (
      so we can start over here... */
   eol = 0;
   bytes_already_read = 0;
-  had_header = NO;
   length = 0;
   doing_redirect = 0;
   compressed = 0;
@@ -620,7 +621,6 @@ fixed for HTTP proxies -- ck
   {
       /* Get numeric status etc */
       BOOL end_of_file = NO;
-      HTAtom * encoding = HTAtom_for("8bit");
       int buffer_length = INIT_LINE_SIZE;
     
       line_buffer = (char *) malloc(buffer_length * sizeof(char));

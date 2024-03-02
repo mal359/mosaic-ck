@@ -27,9 +27,13 @@ char *mo_tmpnam(char *url);
 
 
 #include "HTNews.h"
+
 #include "../src/mosaic.h"
 #include "../src/newsrc.h"
 #include "../src/prefs.h"
+#include "../src/img.h"
+
+#include "../libnut/str-tools.h"
 
 #define NEWS_PORT 119		/* See rfc977 */
 #define APPEND			/* Use append methods */
@@ -51,6 +55,8 @@ char *mo_tmpnam(char *url);
 #include "HTML.h"
 #include "HTParse.h"
 #include "HTFormat.h"
+#include "HTAlert.h"
+#include "HTTCP.h"
 
 #ifndef DISABLE_TRACE
 extern int www2Trace;
@@ -240,13 +246,12 @@ PRIVATE BOOL match ARGS2 (WWW_CONST char *,unknown, WWW_CONST char *,template)
    Returns: pointer to em
 
    Notes:
-   Parse str for an email address and author name in the email@host (name) 
-   or name <email@host> forms.  This destroys the source string.  If 
+   Parse str for an email address and author name in the email@host (name)
+   or name <email@host> forms.  This destroys the source string.  If
    either name of em is NULL, the value will not be returned.
 */
 char *parseemail (char *str, char *name, char *em)
 {
-  char *c, d;
   char *email, *end;
 
   /* Pull out email address */
@@ -394,14 +399,13 @@ static char b64_tab[256] = {
 
 int base64line(FILE *fp, char *buf)
 {
-    int last_data = 0;
     unsigned char *p = (unsigned char *) buf;
 
     if(!buf || !*buf || isspace(*buf)){
         fclose(fp);
         return 1;
     }
-            
+
             /* The following implementation of the base64 decoding might look
                a bit clumsy but I only try to follow the POSIX standard:
                ``All line breaks or other characters not found in the table
@@ -410,35 +414,34 @@ int base64line(FILE *fp, char *buf)
     while (*p){
         char c1, c2, c3;
 
-        while ((b64_tab[*p] & '\100') != 0) 
+        while ((b64_tab[*p] & '\100') != 0)
             if (!*p || *p++ == '=') break;
-        
+
         if (!*p) continue;          /* This leaves the loop.  */
-        
+
         c1 = b64_tab[*p++];
-        
+
         while ((b64_tab[*p] & '\100') != 0) {
             if (!*p || *p++ == '=') {
                 HTProgress("illegal base64 line");
                 return 1;
             }
         }
-        
+
         c2 = b64_tab[*p++];
-        
+
         while (b64_tab[*p] == '\177') {
             if (!*p++) {
                 HTProgress("illegal base64 line");
                 return 1;
             }
         }
-          
+
         if (*p == '=') {
             fputc(c1 << 2 | c2 >> 4,fp);
-            last_data = 1;
             break;
         }
-            
+
         c3 = b64_tab[*p++];
 
         while (b64_tab[*p] == '\177') {
@@ -447,7 +450,7 @@ int base64line(FILE *fp, char *buf)
                 return 1;
             }
         }
-        
+
         fputc(c1 << 2 | c2 >> 4,fp);
         fputc(c2 << 4 | c3 >> 2,fp);
         if (*p == '=') {
@@ -458,7 +461,7 @@ int base64line(FILE *fp, char *buf)
         }
     }
     return 0;
-    
+
 }
 
 /*******************************************************/
@@ -485,7 +488,7 @@ void freeart(NewsArt *art)
 PRIVATE void ClearArtList NOARGS
 {
     NewsArt *temp,*tnext,*temp2,*tnext2;
-    
+
     temp = FirstArt;
     while(temp) {
 	tnext = temp->nextt;
@@ -533,7 +536,7 @@ PRIVATE NewsArt *NewArt NOARGS
 }
 
 /* AddArtTop ()
-   Add an Article to the thread chain 
+   Add an Article to the thread chain
 */
 PRIVATE void AddArtTop ARGS1(WWW_CONST NewsArt *, add)
 {
@@ -568,7 +571,7 @@ PRIVATE void AddArtTop ARGS1(WWW_CONST NewsArt *, add)
 	add->prevt = add->nextt = NULL;
 	add->next = NULL;
 	add->prev = temp;
-	
+
 	temp->next = add;
     } else {
 	/* Otherwise, tack it onto the back of the list */
@@ -840,12 +843,12 @@ PRIVATE int OpenNNTP NOARGS
 	if ((response(NULL) / 100) !=2) {
 	    NETCLOSE(s);
 	    s = -1;
-	    
+
 	    return 1;
 	}
     }
     return 0;
-} 
+}
 
 
 /* Interface with news-gui.c and various others... */
@@ -859,7 +862,7 @@ static char qline[LINE_LENGTH+1];
 char *NNTPgetquoteline(char *art)
 {
     char *p;
-    int i,f,status ;
+    int i,status;
 
     if (!initialized)
 	initialized = initialize();
@@ -870,7 +873,7 @@ char *NNTPgetquoteline(char *art)
 	HTProgress ("Could not set up news connection.");
 	return NULL;
     }
-    
+
     if(s < 0) {
 	HTProgress("Attempting to connect to news server");
 	if(OpenNNTP()){
@@ -887,7 +890,7 @@ char *NNTPgetquoteline(char *art)
 	HTInitInput(s);
 	sprintf(qline, "BODY <%s>%c%c", art, CR, LF);
 	status = response(qline);
-	
+
 	if (status != 222) return NULL;
     }
 
@@ -951,9 +954,9 @@ int NNTPgetarthdrs(char *art,char **ref, char **grp, char **subj, char **from)
     HTInitInput(s);
     sprintf(buffer, "HEAD <%s>%c%c", art, CR, LF);
     status = response(buffer);
-	
+
     if (status == 221) {	/* Head follows - parse it:*/
-	
+
 	p = line;				/* Write pointer */
 	done = NO;
 	while(!done){
@@ -962,27 +965,27 @@ int NNTPgetarthdrs(char *art,char **ref, char **grp, char **subj, char **from)
 		abort_socket();	/* End of file, close socket */
 		return 0;	/* End of file on response */
 	    }
-	    
+
 	    if ((ch == LF)
 		|| (p == &line[LINE_LENGTH]) ) {
-		
+
 		*--p=0;		/* Terminate  & chop LF*/
 		p = line;		/* Restart at beginning */
 #ifndef DISABLE_TRACE
 		if (www2Trace) fprintf(stderr, "G %s\n", line);
 #endif
 		switch(line[0]) {
-		    
+
 		case '.':
 		    done = (line[1]<' ');	/* End of article? */
 		    break;
-		    
+
 		case 'S':
 		case 's':
 		    if (match(line, "SUBJECT:"))
 			StrAllocCopy(*subj, line+9);/* Save subject */
 		    break;
-		    
+
 		case 'R':
 		case 'r':
 		    if (match(line, "REFERENCES:")) {
@@ -990,7 +993,7 @@ int NNTPgetarthdrs(char *art,char **ref, char **grp, char **subj, char **from)
 			StrAllocCopy(*ref,p+1);
 		    }
 		    break;
-		    
+
 		case 'N':
 		case 'n':
 		    if (match(line, "NEWSGROUPS:")) {
@@ -998,7 +1001,7 @@ int NNTPgetarthdrs(char *art,char **ref, char **grp, char **subj, char **from)
 			StrAllocCopy(*grp,p+1);
 		    }
 		    break;
-		    
+
 		case 'f':
 		case 'F':
 		    if (match(line, "FROM:")) {
@@ -1014,19 +1017,21 @@ int NNTPgetarthdrs(char *art,char **ref, char **grp, char **subj, char **from)
 			}
 		    }
 		    break;
-		    
+
 		} /* end switch on first character */
-		
+
 		p = line;		/* Restart at beginning */
 	    } /* if end of line */
 	} /* Loop over characters */
     } /* If good response */
+
+    return 0;
 }
- 
+
 int NNTPpost(char *from, char *subj, char *ref, char *groups, char *msg)
 {
     char buf[1024];
-  
+
     if (!initialized)
 	initialized = initialize();
     if (!initialized){
@@ -1036,7 +1041,7 @@ int NNTPpost(char *from, char *subj, char *ref, char *groups, char *msg)
 	HTProgress ("Could not set up news connection.");
 	return HT_NOT_LOADED;	/* FAIL */
     }
-    
+
     if(s < 0) {
 	HTProgress("Attempting to connect to news server");
 	if(OpenNNTP()){
@@ -1047,7 +1052,7 @@ int NNTPpost(char *from, char *subj, char *ref, char *groups, char *msg)
 	    return HT_NOT_LOADED;	/* FAIL */
 	}
     }
-    
+
     if(response("POST\r\n") != 340) {
 	HTProgress("Server does not allow posting.");
 	return 0;
@@ -1073,6 +1078,8 @@ int NNTPpost(char *from, char *subj, char *ref, char *groups, char *msg)
 	HTProgress("Article was posted successfully.");
 
     HTDoneWithIcon ();
+
+    return 0;
 }
 
 
@@ -1103,10 +1110,10 @@ NewsArt *is_news_url(char *s)
 /* These are called by their gui_news_* counterparts in gui-news.c */
 
 /* Beginning in 2.7b4, these now return the next/prev unread article/thread ,
-   unless newsShowAllArticles is True.  The previous unread article/thread 
-   is set in the news_next functions.  
+   unless newsShowAllArticles is True.  The previous unread article/thread
+   is set in the news_next functions.
 
-   news_next will now continue onto the next thread unless newsNoThreadJumping 
+   news_next will now continue onto the next thread unless newsNoThreadJumping
    is True.
 */
 
@@ -1114,7 +1121,7 @@ NewsArt *nextUnreadThread (NewsArt *art);
 NewsArt *prevUnreadThread (NewsArt *art);
 
 /* Return first unread article in list (thread) */
-NewsArt *firstUnread (NewsArt *art) 
+NewsArt *firstUnread (NewsArt *art)
 {
   NewsArt *a;
   newsgroup_t *tempNewsGroupS = NULL;
@@ -1138,7 +1145,7 @@ NewsArt *firstUnread (NewsArt *art)
 
 
 /* return next unread article after art */
-NewsArt *nextUnread (NewsArt *art, int probe) 
+NewsArt *nextUnread (NewsArt *art, int probe)
 {
   NewsArt *a;
   newsgroup_t *tempNewsGroupS = NULL;
@@ -1165,11 +1172,11 @@ NewsArt *nextUnread (NewsArt *art, int probe)
 }
 
 /* Return first unread thread in list */
-NewsArt *firstUnreadThread (NewsArt *art) 
+NewsArt *firstUnreadThread (NewsArt *art)
 {
   NewsArt *t, *a;
 
-  if (!art) 
+  if (!art)
     return NULL;
 
   if (!newsUseNewsRC || newsShowAllArticles || !newsNextIsUnread)
@@ -1186,7 +1193,7 @@ NewsArt *firstUnreadThread (NewsArt *art)
 }
 
 /* Return next unread thread in list */
-NewsArt *nextUnreadThread (NewsArt *art) 
+NewsArt *nextUnreadThread (NewsArt *art)
 {
   NewsArt *t;
 
@@ -1255,15 +1262,15 @@ NewsArt *prevUnreadThread (NewsArt *art)
 
 /* Goto the previous (unread) thread */
 void news_prevt(char *url)
-{	
+{
   NewsArt *art, *p;
-  
+
   if (art = is_news_url (url)) {
     if ((p = prevUnreadThread (art)) != NULL) {
       sprintf (url, "news:%s", p->ID);
       return;
     }
-  } 
+  }
   url[0] = 0;
   return;
 }
@@ -1272,7 +1279,7 @@ void news_prevt(char *url)
 void news_nextt(char *url)
 {
   NewsArt *art, *p;
-  
+
   if ((art = is_news_url(url)) != NULL) {
     if ((p=nextUnreadThread (art))) {
       sprintf (url, "news:%s", p->ID);
@@ -1289,7 +1296,7 @@ void news_prev(char *url)
 {
     NewsArt *art, *p;
 
-    if ((art = is_news_url(url)) == NULL) { 
+    if ((art = is_news_url(url)) == NULL) {
       url[0] = 0;
       return;
     }
@@ -1337,24 +1344,24 @@ void news_index(char *url)
 /* Returns the status of the news buttons */
 void news_status(char *url, int *prevt, int *nextt, int *prev, int *next, int *follow)
 {
-    NewsArt *art,*tmp;
+    NewsArt *art;
 
     if( art = is_news_url(url) ) {
-      if(prevUnread(art,!newsNoThreadJumping)) 
+      if(prevUnread(art,!newsNoThreadJumping))
 	*prev = 1;
-      else 
+      else
 	*prev = 0;
-      
-      if(prevUnreadThread(art)) 
+
+      if(prevUnreadThread(art))
 	*prevt = 1;
       else
 	*prevt = 0;
-      
+
       if (nextUnread (art,!newsNoThreadJumping))
 	*next = 1;
       else
 	*next = 0;
-      
+
       if (nextUnreadThread (art))
 	*nextt = 1;
       else
@@ -1379,7 +1386,7 @@ void news_status(char *url, int *prevt, int *nextt, int *prev, int *next, int *f
 
    Returns: pointer to a static spaces string, each call to make spaces will
             overwrite this buffer.
-   
+
    Notes: this takes the string in str and makes a string of spaces that will
           (when concatenated with str) form a string len spaces long.
 */
@@ -1425,21 +1432,21 @@ PRIVATE void read_article ARGS1 (char *, artID)
     char *references=NULL;			/* Hrefs for other articles */
     char *newsgroups=NULL;			/* Newsgroups list */
     char *from=NULL,*subj=NULL,*org=NULL,*date=NULL;
-    char *filename;
+    char *filename=NULL;
     char *l = line;
     int f; /* ':' flag */
     int decode=0; /*uudecoding...*/
-    FILE *fp;
-        
+    FILE *fp = NULL;
+
     char *p = line,*pp,*m;
     BOOL done = NO;
 
-    NewsArt *art,*art2,*art_t, *next;
+    NewsArt *art,*art2,*next;
     int ll;
-    
+
 
     HTMeter(0,NULL);
-    
+
     ll= strlen(artID)-3; /* ">\n\r" should be stripped outside !!! */
     for(art = FirstArt; art; art = art -> nextt){
       if(!strncmp(art->ID,artID,ll)) break;
@@ -1452,16 +1459,16 @@ PRIVATE void read_article ARGS1 (char *, artID)
 	}
       }
     }
-    
+
     if(art) {
       CurrentArt = art;
     } else {
       CurrentArt = NULL;
     }
-    
+
 /*	Read in the HEADer of the article:
 **
-**	The header fields are either ignored, or formatted 
+**	The header fields are either ignored, or formatted
 **      and put into the text.
 */
     while(!done){
@@ -1470,7 +1477,7 @@ PRIVATE void read_article ARGS1 (char *, artID)
 	abort_socket();	/* End of file, close socket */
 	return;		/* End of file on response */
       }
-      if ((ch == LF) || (p == &line[LINE_LENGTH])) {            
+      if ((ch == LF) || (p == &line[LINE_LENGTH])) {
 	*--p=0;				/* Terminate the string */
 #ifndef DISABLE_TRACE
 	if (www2Trace) fprintf(stderr, "H %s\n", line);
@@ -1519,16 +1526,16 @@ PRIVATE void read_article ARGS1 (char *, artID)
 	      references = strdup(&line[11]);
 	    break;
 	  default:
-	    
+
 	    /* unknown headers ignored */
 	    break;
 	  }
 	}
-	
+
 	p = line;			/* Restart at beginning */
       } /* if end of line */
     } /* Loop over characters */
-    
+
     if(subj) {
       PUTS("<H2>");
       PUTS(subj);
@@ -1547,15 +1554,15 @@ PRIVATE void read_article ARGS1 (char *, artID)
 	PUTS(", ");
 	PUTS(org);
 	free(org);
-      }       
+      }
       PUTS("</I><BR>\n");
     }
     if(from) {
       PUTS("<B>From:</B> <I>");
       if (parseemail (from,duff,buf)) {
-	sprintf (line, "<A HREF=\"mailto:%s\"> %s </A>   ", buf, duff);  
+	sprintf (line, "<A HREF=\"mailto:%s\"> %s </A>   ", buf, duff);
 	PUTS (line);
-      } else 
+      } else
 	PUTS (from);
       PUTS("</I><BR>");
       free(from);
@@ -1582,7 +1589,7 @@ PRIVATE void read_article ARGS1 (char *, artID)
 			  PUTS(line);
 			  i++;
                         }
-                        break;   
+                        break;
 	    }
 	  }
 	  if(!*p) break;
@@ -1591,18 +1598,18 @@ PRIVATE void read_article ARGS1 (char *, artID)
       free(references);
       PUTS("</I><BR>\n");
     }
-    
+
     if(linecount) {
       lineinc = linecount/100;
       if(lineinc < 1) lineinc = 1;
     }
-    
+
     PUTS("<HR>\n");
-    
+
     /*	Read in the BODY of the Article:
      */
     (*targetClass.start_element)(target, HTML_PRE , 0, 0);
-    
+
     p = line;
     done = 0;
     while(!done){
@@ -1626,7 +1633,7 @@ PRIVATE void read_article ARGS1 (char *, artID)
 		case 1:
 		  uudecodeline(fp,NULL);
 		  sprintf(line,"%s\n%s",filename,filename);
-		  ImageResolve(NULL,line,0);
+		  ImageResolve(NULL,line,0,NULL,NULL);
 		  PUTS("<BR><IMG SRC=\"");
 		  PUTS(filename);
 		  PUTS("\"><BR>");
@@ -1634,7 +1641,7 @@ PRIVATE void read_article ARGS1 (char *, artID)
 		case 2:
 		  base64line(fp,NULL);
 		  sprintf(line,"%s\n%s",filename,filename);
-		  ImageResolve(NULL,line,0);
+		  ImageResolve(NULL,line,0,NULL,NULL);
 		  PUTS("<BR><IMG SRC=\"");
 		  PUTS(filename);
 		  PUTS("\"><BR>");
@@ -1645,15 +1652,15 @@ PRIVATE void read_article ARGS1 (char *, artID)
             }
             linenum++;
             if(linecount && !(linenum%lineinc)) {
-	      HTMeter((linenum*100)/(linecount),NULL);            
+	      HTMeter((linenum*100)/(linecount),NULL);
             }
             switch(decode) {
-            case 1:                        
+            case 1:
 	      /* uuencoded */
 	      if(uudecodeline(fp,line)){
 		decode=6;
 		sprintf(line,"%s\n%s",filename,filename);
-		ImageResolve(NULL,line,0);
+		ImageResolve(NULL,line,0,NULL,NULL);
 		PUTS("<BR><IMG SRC=\"");
 		PUTS(filename);
                     PUTS("\"><BR>");
@@ -1666,13 +1673,13 @@ PRIVATE void read_article ARGS1 (char *, artID)
 	      if(base64line(fp,line)){
 		decode=6;
 		sprintf(line,"%s\n%s",filename,filename);
-		ImageResolve(NULL,line,0);
+		ImageResolve(NULL,line,0,NULL,NULL);
 		PUTS("<BR><IMG SRC=\"");
 		PUTS(filename);
 		PUTS("\"><BR>");
 	      }
 	      p = line;
-	      continue;                       
+	      continue;
             case 3:
 	      /* is mime, looking for encoding... */
 	      if(match(line,"CONTENT-TRANSFER-ENCODING: BASE64")){
@@ -1798,15 +1805,15 @@ PRIVATE void read_article ARGS1 (char *, artID)
 #endif
             p = line;				/* Restart at beginning */
       }
-      
+
     } /* Loop over characters */
-    
+
     (*targetClass.end_element)(target, HTML_PRE);
-    
-    /* Mark this article read in all the groups we care about 
-       Also figure out the next article to read 
+
+    /* Mark this article read in all the groups we care about
+       Also figure out the next article to read
      */
-   
+
     if ((next = nextUnread (CurrentArt,0)) == NULL) {
       if ((next = nextUnreadThread (CurrentArt)) == NULL) {
 	next = CurrentArt;
@@ -1818,7 +1825,7 @@ PRIVATE void read_article ARGS1 (char *, artID)
 
     NextArt = next;
     if (CurrentArt) {
-      char *tok, d, *last;
+      char *tok;
       newsgroup_t *ng;
 
       if (newsgroups) {
@@ -1830,12 +1837,12 @@ PRIVATE void read_article ARGS1 (char *, artID)
 	  tok = strtok (NULL, ", ;:\t\n");
 	}
       } else if (NewsGroup) {
-	if (ng = findgroup (NewsGroup)) { 
+	if (ng = findgroup (NewsGroup)) {
 	  markread (ng, CurrentArt->num);
 	}
       }
     }
-      
+
     HTMeter(100,NULL);
 }
 
@@ -1851,19 +1858,18 @@ PRIVATE void read_article ARGS1 (char *, artID)
 	      do not handle it here.
        2.7b4: Added support for newsrc and subscribed news.
        2.7b5: Made it faster.
-*/        
+*/
 PRIVATE void read_list NOARGS
 {
-  char line[LINE_LENGTH+1], group[LINE_LENGTH], elgroup[LINE_LENGTH], 
+  char line[LINE_LENGTH+1], group[LINE_LENGTH], elgroup[LINE_LENGTH],
     postable, *p;
-  int first, last, junk, m=0, next_m=20, done=0, intr, g=0, next_g = 50, l=0, lastg=0,mark=0;  
+  int first, last, junk, m=0, next_m=20, done=0, intr, g=0, next_g = 50, l=0, lastg=0,mark=0;
   newsgroup_t *n=NULL, *nn=NULL;
-  extern int twirl_increment;
 
   START (HTML_TITLE);
   PUTS ("Newsgroup Listing");
   END (HTML_TITLE);
-    
+
   HTMeter (0,NULL);
   HTProgress ("Getting newsgroup information from NNTP server");
 
@@ -1953,7 +1959,7 @@ PRIVATE void read_list NOARGS
       	      if (n->attribs&naSUBSCRIBED && 
 		  (newsShowAllGroups || n->unread>0 
 		   || newsShowReadGroups)) {
-		sprintf(line,"%s % 7d S <A HREF=\"news:%s\">%s</A> \n",
+		sprintf(line,"%s % 7ld S <A HREF=\"news:%s\">%s</A> \n",
 			(lastg==1)?"<b>&gt;&gt;&gt;</b>":"   ",
 			n->unread, n->name, elgroup);
 		PUTS (line);
@@ -2015,7 +2021,7 @@ PRIVATE void read_list NOARGS
       else if (nn == n && !mark)
 	lastg = 1;
       if (newsShowAllGroups  || n->unread>0 || newsShowReadGroups) {
-	sprintf(line,"%s % 7d %s <A HREF=\"news:%s\">%s</A> \n",
+	sprintf(line,"%s % 7ld %s <A HREF=\"news:%s\">%s</A> \n",
 		(lastg==1)? "<b>&gt;&gt;&gt;</b>":"   ",
 		n->unread, n->attribs&naSUBSCRIBED?"S":"U", 
 		n->name, elgroup);
@@ -2101,20 +2107,18 @@ PRIVATE void XBuildArtList ARGS3(
 )
 {
     NewsArt *art;
-    char *p,*aname=NULL, *author=NULL, *aref, abuf[1024+1];
-    BOOL done;
+    char *p,*aname=NULL, *aref, abuf[1024+1];
 
     char *num,*title,*date,*msgid,*ref,*bytes,*lines,*from=NULL;
 
     char buf[2048];
 
-    char *reference=0;			/* Href for article */
     int status, count, first, last;	/* Response fields */
 					/* count is only an upper limit */
-    int c,i,lineinc;
+    int lineinc;
 
     HTMeter(0,NULL);
-    
+
 #ifndef DISABLE_TRACE
     if(www2Trace) fprintf(stderr,"[%s]\n",response_text);
 #endif
@@ -2240,12 +2244,11 @@ PRIVATE void BuildArtList ARGS3(
 )
 {
     NewsArt *art;
-    char *p,*aname, *author, *aref, abuf[1024+1];
     BOOL done;
+    char *p,*aname, *aref, abuf[1024+1];
 
     char buffer[LINE_LENGTH];
     char line[LINE_LENGTH];
-    char *reference=0;			/* Href for article */
     int artno;				/* Article number WITHIN GROUP */
     int status, count, first, last;	/* Response fields */
 					/* count is only an upper limit */
@@ -2256,6 +2259,7 @@ PRIVATE void BuildArtList ARGS3(
     if(www2Trace) fprintf(stderr,"[%s]",response_text);
 #endif
     sscanf(response_text, "%d %d %d %d", &status, &count, &first, &last);
+
 #ifndef DISABLE_TRACE
     if(www2Trace) fprintf(stderr,"Newsgroup status=%d, count=%d, (%d-%d)",
     			status, count, first, last);
@@ -2465,18 +2469,11 @@ PRIVATE void read_group ARGS3(
 )
 {
     NewsArt *art,*art2, *f;
-    char *p;
-    BOOL done;
     char buffer[LINE_LENGTH], subj[LINE_LENGTH];
-    char line[LINE_LENGTH], from[LINE_LENGTH];
+    char from[LINE_LENGTH];
     char efrom[LINE_LENGTH], esubj[LINE_LENGTH];
-    char *reference=0;			
-    int i,artno, mark=0;			
-    int tc=0;
-    int status, count;	                 /* Response fields */
-			 /* count is only an upper limit */
-    char em[255+1];
-    
+    int i,mark=0;
+
     if ((NewsGroupS = findgroup (groupName)) == NULL) {
       /* Add group unsub'd to hash table */
       if((NewsGroupS = addgroup (groupName, first, last, 1))==NULL) {
@@ -2595,7 +2592,7 @@ PUBLIC int HTLoadNews ARGS4(
 {
   char command[257];			/* The whole command */
   char groupName[GROUP_NAME_LENGTH];	/* Just the group name */
-  char buf[LINE_LENGTH+1], *pt, *p1;
+  char buf[LINE_LENGTH+1], *p1;
   int status;				/* tcp return */
   int retries;			        /* A count of how hard we have tried */ 
   BOOL group_wanted;			/* Flag: group was asked for, not article */
@@ -2642,16 +2639,18 @@ PUBLIC int HTLoadNews ARGS4(
   **		xxx@yyy			Article
   **		<xxx@yyy>		Same article
   **		xxxxx			News group (no "@")
-  */        
+  */
   group_wanted = (strchr(arg, '@')==0) && (strchr(arg, '*')==0);
   list_wanted  = (strchr(arg, '@')==0) && (strchr(arg, '*')!=0);
-    
+
   /* Don't use HTParse because news: access doesn't follow traditional
      rules. For instance, if the article reference contains a '#',
-     the rest of it is lost -- JFG 10/7/92, from a bug report 
+     the rest of it is lost -- JFG 10/7/92, from a bug report
   */
   if (!my_strncasecmp (arg, "news:", 5))
     p1 = arg + 5;  /* Skip "news:" prefix */
+  else
+    p1 = arg;
   if (group_wanted) {
     strcpy (command, "GROUP ");
     first = 0;
@@ -2660,37 +2659,37 @@ PUBLIC int HTLoadNews ARGS4(
     strcat (command, groupName);
   } else if (!list_wanted) {
     strcpy (command, "ARTICLE ");
-    if (strchr(p1, '<')==0) 
+    if (strchr(p1, '<')==0)
       strcat(command,"<");
     strcat(command, p1);
-    if (strchr(p1, '>')==0) 
+    if (strchr(p1, '>')==0)
 	strcat(command,">");
   } else {
 	command[0] = 0;
   }
-  
+
   {
     char * p = command + strlen(command);
     *p++ = CR;		/* Macros to be correct on Mac */
     *p++ = LF;
     *p++ = 0;
   }
-  
+
   if (!*arg) {
     HTProgress ("Could not load data.");
     return HT_NOT_LOADED;			/* Ignore if no name */
   }
-  
-  /*  Make a hypertext object with an anchor list. */       
+
+  /*  Make a hypertext object with an anchor list. */
   node_anchor = anAnchor;
   target = HTML_new(anAnchor, format_out, stream);
-  targetClass = *target->isa;	
-  
-  /*  Now, let's get a stream setup up from the NewsHost: */       
+  targetClass = *target->isa;
+
+  /*  Now, let's get a stream setup up from the NewsHost: */
   for (retries=0; retries<2; retries++) {
     target = HTML_new(anAnchor, format_out, stream);
     targetClass = *target->isa;	/* Copy routine entry points */
-      if (s < 0) 
+      if (s < 0)
 	if(status = OpenNNTP()){
 	  char message[256];
 	  switch(status){
@@ -2714,21 +2713,21 @@ PUBLIC int HTLoadNews ARGS4(
 	    HTProgress ("Could not access news host.");
 	    sprintf(message,"\nCould not access news host %s.  "
 		    "Try setting environment variable <code>NNTPSERVER</code> "
-		    "to the name of your news host, and restart Mosaic.", 
+		    "to the name of your news host, and restart Mosaic.",
 		    HTNewsHost);
-	    
+
 	    PUTS(message);
 	    (*targetClass.end_document)(target);
 	    (*targetClass.free)(target);
 	    return HT_LOADED;
 	  case 3:
 	    HTProgress ("Connection interrupted.");
-	    (*targetClass.handle_interrupt)(target);	    
-	    
+	    (*targetClass.handle_interrupt)(target);
+
 	    return HT_INTERRUPTED;
 	  }
 	}
-      
+
       status = response("XOVER\r\n");
       if(status != 500) 
 	has_xover = 1; 

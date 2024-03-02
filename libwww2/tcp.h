@@ -50,6 +50,7 @@ Default values
 
 #ifdef unix
 #define GOT_PIPE
+#include <unistd.h>
 #endif
 
 typedef struct sockaddr_in SockA;  /* See netinet/in.h */
@@ -65,6 +66,10 @@ typedef struct sockaddr_in SockA;  /* See netinet/in.h */
 #endif
 #ifdef AIX
 #define unix
+#endif
+
+#ifdef _UNICOS
+#define USE_DIRENT
 #endif
 
 #ifdef _IBMR2

@@ -56,19 +56,24 @@
 #define __XMXP_H__
 
 /* System includes. */
+#ifndef _UNICOS
+#include <stdint.h>
+#else
+typedef unsigned int uintptr_t;
+#endif
 
 /* Here are some nasty ifdef's to make SGI's weird header files happy -DXP */
 
 #ifdef __sgi
-#ifndef _SVR4_SOURCE
-#define _SVR4_SOURCE
-#include <stdio.h>
-#undef _SVR4_SOURCE
+# ifndef _SVR4_SOURCE
+#  define _SVR4_SOURCE
+#  include <stdio.h>
+#  undef _SVR4_SOURCE
+# else
+#  include <stdio.h>
+# endif
 #else
-#include <stdio.h>
-#endif
-#else
-#include <stdio.h>
+# include <stdio.h>
 #endif
 
 #ifdef __sgi
@@ -132,7 +137,7 @@
 #endif /* if 0 */
 
 /* Prototypes for internal routines found in Xmx.c. */
-extern int _XmxMakeClientData (int);
+extern uintptr_t _XmxMakeClientData (uintptr_t);
 
 /* Marc's defines. */
 #undef  private

@@ -43,10 +43,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
+
 #include "HTFTP.h"	/* Implemented here */
 #include "../libnut/str-tools.h"
 #define LINE_LENGTH 1024
 
+#include "HTAlert.h"
 #include "HTParse.h"
 #include "HTUtils.h"
 #include "tcp.h"
@@ -56,6 +59,14 @@
 #include "HTChunk.h"
 #include "HTSort.h"
 #include "HText.h"
+
+#ifdef _UNICOS
+typedef int socklen_t;
+#endif
+
+#include "../src/mosaic.h"
+#include "../src/gui.h"
+#include "../src/gui-dialogs.h"
 
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 64           /* Arbitrary limit */
@@ -124,6 +135,8 @@ extern int ftpRedialSleep;
 extern int ftpFilenameLength;
 extern int ftpEllipsisLength;
 extern int ftpEllipsisMode;
+
+void CLOSE_CONTROL(int);
 
 /*SWP -- 9.27.95 -- Directory parsing*/
 #define NEW_PARSE
@@ -245,13 +258,12 @@ PRIVATE int response (cmd)
   int messageStarted = 0;
 
 char *ptr;
-char bytestr[256],*byteptr;
 int bytes;
-  
-  if (!control || control == -1) 
+
+  if (!control || control == -1)
     {
 #ifndef DISABLE_TRACE
-      if(www2Trace) 
+      if(www2Trace)
         fprintf(stderr, "FTP: No control connection set up!!\n");
 #endif
       return -99;
@@ -1042,7 +1054,7 @@ PRIVATE int get_listen_socket()
   sin->sin_addr.s_addr = INADDR_ANY; /* Any peer address */
   {
     int status;
-    int address_length = sizeof(soc_address);
+    socklen_t address_length = sizeof(soc_address);
 #ifdef SOCKS
     status = Rgetsockname(control,
 #else
@@ -1160,12 +1172,11 @@ ARGS4 (
   HTAtom *pencoding;
   char *filename = HTParse(address, "", PARSE_PATH + PARSE_PUNCTUATION);
   char buffer[BUFSIZ];
-  char buf[BUFSIZ];
   char itemtype;
   char itemname[BUFSIZ];
   char itemsize[BUFSIZ];
   char *full_ftp_name, *ptr;
-  int count, ret, cmpr, c, rv;
+  int count, ret, cmpr, c='\0', rv;
   extern char *HTgeticonname(HTFormat, char *);
 char *ellipsis_string=(char *)calloc(1024,sizeof(char));
 #ifdef NEW_PARSE
@@ -1173,7 +1184,6 @@ int nTime;
 char szDate[256];
 int nStringLen;
 int nSpaces;
-int nOldSpaces;
 char szFileInfo[32];
 char szMonth[32];
 char szDay[16];
@@ -1199,22 +1209,22 @@ char szTime[32];
       HText_appendText(HT,"<DD>");
 
       HText_appendText(HT,"<A HREF=\"");
-      
+
       strcpy(buffer,filename);
       ptr = strrchr(buffer,'/');
-      
+
       if(ptr != NULL) *ptr='\0';
-      
-      if(buffer[0] == '\0') 
+
+      if(buffer[0] == '\0')
         HText_appendText(HT,"/");
       else
         HText_appendText(HT, buffer);
-      
+
       HText_appendText(HT,"\"><IMG SRC=\"");
       HText_appendText(HT, HTgeticonname(NULL, "directory"));
       HText_appendText(HT,"\"> Parent Directory</a>");
     }
-  
+
   /* Loop until we hit EOF */
   while(1)
     {
@@ -1230,7 +1240,7 @@ char szTime[32];
 #endif
               return HT_INTERRUPTED;
             }
-          
+
           if (c == '\r')
             {
               c = next_data_char ();
@@ -1238,29 +1248,29 @@ char szTime[32];
                 {
 #ifndef DISABLE_TRACE
                   if (www2Trace)
-                    fprintf 
+                    fprintf
                       (stderr, "FTP: Picked up interrupted_in_next_data_char\n");
 #endif
                   return HT_INTERRUPTED;
                 }
-              
-              if (c != '\n') 
+
+              if (c != '\n')
                 break;
             }
-          
-          if (c == '\n' || c == (char)EOF) 
+
+          if (c == '\n' || c == (char)EOF)
             break;
-          
+
           buffer[count] = c;
 	}
-      
-      if(c == (char)EOF) 
+
+      if(c == (char)EOF)
         break;
-      
+
       buffer[count] = 0;
-      
+
       /* Parse the input buffer, extract the item type, and the item size */
-      
+
 #if 0
       ret=sscanf(buffer,"%c%*9s%*d %*s %*s %s", &itemtype, itemsize);
 
@@ -1301,9 +1311,7 @@ char szTime[32];
 	}
       }
 
-      if (!buffer || !*buffer) {
-	continue;
-      }
+      if (!*buffer) continue;
 
       if (usingNLST==2) { /*only name*/
 	strcpy(itemname,buffer);
@@ -1347,7 +1355,7 @@ char szTime[32];
       
       HText_appendText (HT, "<A HREF=\"");
       /* Assuming it's a relative reference... */
-      if (itemname && itemname[0] != '/')
+      if (itemname[0] != '/')
         {
           HText_appendText (HT, filename);
           if (filename[strlen(filename)-1] != '/') 
@@ -1430,9 +1438,9 @@ char szTime[32];
                 sprintf(buffer,"<code>%s</code>",full_ftp_name);
               }
 #endif
-            
+
             format = HTFileFormat(itemname, &pencoding, WWW_SOURCE, &cmpr);
-            
+
             if (1)
               {
                 HText_appendText(HT, "<IMG SRC=\"");
@@ -1441,9 +1449,9 @@ char szTime[32];
                    kind of file it is by extension, throw up the unknown
                    icon; however, if it isn't a link and we can't figure
                    out what it is, throw up the text icon...
-                   
+
                    Unless it's compressed. */
-                if(itemtype == 'l' && cmpr == COMPRESSED_NOT) 
+                if(itemtype == 'l' && cmpr == COMPRESSED_NOT)
                   {
                     /* If it's unknown, let's call it a menu (since symlinks
                        are most commonly used on FTP servers to point to
@@ -1454,7 +1462,7 @@ char szTime[32];
                   {
                     HText_appendText(HT, HTgeticonname(format, "text")); 
                   }
-                
+
                 HText_appendText(HT, "\"> ");
               }
             else
@@ -1475,7 +1483,6 @@ char szTime[32];
               break;
             }
       }
-      
 	HText_appendText (HT, buffer);
 #ifndef NEW_PARSE
 	HText_appendText (HT, "</A>\n");
@@ -1486,42 +1493,22 @@ char szTime[32];
 
 	nStringLen = strlen(buffer);
 	nSpaces = ftpFilenameLength - nStringLen;
-/*
-	if (itemtype != 'd') {
-*/
-
-		if (nTime == 1) {
-			struct tm *ptr;
-			time_t t;
-
-			t=time(0);
-			ptr=localtime(&t);
-			sprintf(szYear,"%d",1900+(ptr->tm_year));
-			sprintf(szDate, "%*s%9s %s %s %s %2.2s, %s", nSpaces, " ", itemsize, szFileInfo, szTime, szMonth, szDay, szYear); 
-		}
-		else if (nTime == 0) {
-			sprintf(szDate, "%*s%9s %s %s %s %2.2s, %s", nSpaces, " ", itemsize, szFileInfo, "     ", szMonth, szDay, szYear);
-		}
-		else {
-			/*nSpaces += strlen(itemsize); */
-			sprintf(szDate, "%*s  %9.9s  %s %s", nSpaces, " ", itemsize, szMonth, szTime);
-		}
-/*
+	
+	if (nTime == 1) {
+		struct tm *ptr;
+		time_t t;
+		t=time(0);
+		ptr=localtime(&t);
+		sprintf(szYear,"%d",1900+ptr->tm_year);
+		sprintf(szDate, "%*s%9s %s %s %s %2.2s, %s", nSpaces, " ", itemsize, szFileInfo, szTime, szMonth, szDay, szYear); 
+	}
+	else if (nTime == 0) {
+		sprintf(szDate, "%*s%9s %s %s %s %2.2s, %s", nSpaces, " ", itemsize, szFileInfo, "     ", szMonth, szDay, szYear);
 	}
 	else {
-		nOldSpaces = nSpaces;
-		nSpaces += 22;
-		if (nTime == 1) {
-			sprintf(szDate, "%*s  %s %s %2.2s", nSpaces, szFileInfo, szTime, szMonth, szDay); 
-		}
-		else if (nTime == 0) {
-			sprintf(szDate, "%*s  %s %s %2.2s, %s", nSpaces, szFileInfo, "00:00", szMonth, szDay, szYear); 
-		}
-		else {
-			sprintf(szDate, "%*s             %s %s", nOldSpaces, " ", szMonth, szTime);  
-		}
+	        /*nSpaces += strlen(itemsize); */
+		sprintf(szDate, "%*s  %9.9s  %s %s", nSpaces, " ", itemsize, szMonth, szTime);
 	}
-*/
 
 	if (usingNLST!=2) {
 		HText_appendText (HT, szDate);
@@ -1878,7 +1865,7 @@ skipDir:
   {
     struct sockaddr_in soc_address;
 
-    int	soc_addrlen = sizeof(soc_address);
+    socklen_t soc_addrlen = sizeof(soc_address);
 #ifdef SOCKS
     status = Raccept(master_socket,
 #else
@@ -2061,7 +2048,7 @@ PUBLIC int HTFTPMkDir ARGS1 ( char *, name )
 {
  char *curpath, *path;
  char command[ LINE_LENGTH+1];
- int status, method = 0;
+ int status  = 0;
 
  HTProgress ("FTP mkdir in progress");
  if(fTimerStarted) {
@@ -2077,7 +2064,7 @@ PUBLIC int HTFTPMkDir ARGS1 ( char *, name )
    return status;
  }
 
- /* The remote directory name is in the url, so pull it out 
+ /* The remote directory name is in the url, so pull it out
     i.e. ftp://warez.yomama.com/pub/31337&warez_boy
     means to make the directory warez_boy at ftp://warez.yomama.com/pub/31337
  */
@@ -2085,14 +2072,14 @@ PUBLIC int HTFTPMkDir ARGS1 ( char *, name )
    close_master_socket ();
    CLOSE_CONTROL (control);
    control = -1;
-   return -1;		
+   return -1;
  }
  *path = '\0';	      /* Make the url normal */
  path++;	      /* Move to the dirname */
  /* *path is the directory name to create */
 
- curpath =  HTParse (name, "", PARSE_PATH+PARSE_PUNCTUATION); 
- if (!curpath || !(*curpath)) 
+ curpath =  HTParse (name, "", PARSE_PATH+PARSE_PUNCTUATION);
+ if (!curpath || !(*curpath))
    curpath = strdup ("/");
  /* *curpath is the remote directory in which to create *path */
 
@@ -2103,7 +2090,7 @@ PUBLIC int HTFTPMkDir ARGS1 ( char *, name )
    close_master_socket ();
    CLOSE_CONTROL (control);
    control = -1;
-   if (status = HT_INTERRUPTED) 
+   if (status = HT_INTERRUPTED)
      HTProgress ("Connection interrupted");
    return (status==HT_INTERRUPTED)?-2:-1;
  }
@@ -2115,7 +2102,7 @@ PUBLIC int HTFTPMkDir ARGS1 ( char *, name )
    close_master_socket ();
    CLOSE_CONTROL (control);
    control = -1;
-   if (status = HT_INTERRUPTED) 
+   if (status = HT_INTERRUPTED)
      HTProgress ("Connection interrupted");
    return (status==HT_INTERRUPTED)?-2:-1;
  }
@@ -2136,7 +2123,7 @@ PUBLIC int HTFTPMkDir ARGS1 ( char *, name )
 */
 PUBLIC int HTFTPRemove ARGS1 ( char *, name )
 {
- char *fname, *filename, *path;
+ char *fname, *filename;
  char command[ LINE_LENGTH+1];
  int status, method = 0, didIt = 0;
 
@@ -2156,7 +2143,7 @@ PUBLIC int HTFTPRemove ARGS1 ( char *, name )
 
  /* Pull out the filename (and path) */
  fname = HTParse (name, "", PARSE_PATH+PARSE_PUNCTUATION);
- if(!(*fname)) 
+ if(!(*fname))
    StrAllocCopy (filename, "/");
 
  /* Pull out just the filename */
@@ -2173,7 +2160,7 @@ PUBLIC int HTFTPRemove ARGS1 ( char *, name )
  for (method =0; method < 2; method++ ) {
    switch (method) {
 
-     /* First, attempt to CWD to fname, if successful, fname is a directory. 
+     /* First, attempt to CWD to fname, if successful, fname is a directory.
 	So, CDUP to get to the parent and call RMD on filename  */
    case 0:
      sprintf (command, "CWD %s%c%c", fname, CR, LF);
@@ -2185,7 +2172,7 @@ PUBLIC int HTFTPRemove ARGS1 ( char *, name )
        close_master_socket ();
        CLOSE_CONTROL (control);
        control = -1;
-       if (status == HT_INTERRUPTED) 
+       if (status == HT_INTERRUPTED)
 	 HTProgress ("Connection interrupted.");
        return (status == HT_INTERRUPTED)?-2:-1;
      }
@@ -2197,7 +2184,7 @@ PUBLIC int HTFTPRemove ARGS1 ( char *, name )
        close_master_socket ();
        CLOSE_CONTROL (control);
        control = -1;
-       if (status == HT_INTERRUPTED) 
+       if (status == HT_INTERRUPTED)
 	 HTProgress ("Connection interrupted.");
        return (status == HT_INTERRUPTED)?-2:-1;
      }
@@ -2271,7 +2258,7 @@ PUBLIC int HTFTPSend ARGS1 ( char *, name ) {
  extern int twirl_increment;
  int next_twirl = twirl_increment, intr = 0;
  struct sockaddr_in soc_address;
- int soc_addrlen = sizeof (soc_address);
+ socklen_t soc_addrlen = sizeof (soc_address);
  struct stat sbuf;
  
         HTProgress ("FTP send in progress.");
@@ -2501,7 +2488,7 @@ PUBLIC int HTFTPSend ARGS1 ( char *, name ) {
 } /* End of HTFTPSend */
 
 
-CLOSE_CONTROL(s)
+void CLOSE_CONTROL(s)
 int s;
 {
 	NETCLOSE(s);
