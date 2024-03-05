@@ -309,9 +309,7 @@ q_sun-lresolv: rm_and_touch
 
 clean:
 	cd libXmx; $(MAKE) clean || echo 'never mind'
-	cd libdtm; $(MAKE) clean || echo 'never mind'
 	cd libhtmlw; $(MAKE) clean || echo 'never mind'
-	cd libnet; $(MAKE) clean || echo 'never mind'
 	cd libnut; $(MAKE) clean || echo 'never mind'
 	cd libwww2; $(MAKE) clean || echo 'never mind'
 	cd src; $(MAKE) clean MOSAIC="Mosaic"
