@@ -133,18 +133,19 @@ static_xlibs = /usr/X11R6/lib/libXpm.a /usr/X11R6/lib/libXm.a /usr/X11R6/lib/lib
 
 #### PNG SUPPORT
 #### For inline PNG support, the following should be defined:
-#### Note that Mosaic only speaks libpng12.
+#### Note that Mosaic only speaks libpng12. (Sike!)
 
 pngdir = /usr
 pnglibdir = $(pngdir)/lib64
-pngincludedir = $(pngdir)/include/libpng12
+pngincludedir = $(pngdir)/include/libpng16
 #pnglibs = $(pnglibdir)/libpng12.so $(pnglibdir)/libz.so /usr/lib64/libm.so
 pnglibs = -lpng -lz -lm
 pngflags =  -I$(pngincludedir) -DHAVE_PNG
 
 #### JPEG SUPPORT
 #### For inline JPEG support, the following should be defined:
-#### The library used is Independent JPEG Group (IJG's) 5.0a.
+#### The library used is Independent JPEG Group (IJG's) 5.0a. 
+####                                (Maybe in the horse-and-buggy times...)
 
 jpegdir = /usr
 #jpeglibs = $(jpegdir)/lib64/libjpeg.so

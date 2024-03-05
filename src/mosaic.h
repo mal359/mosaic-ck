@@ -186,7 +186,7 @@ typedef enum
 #endif
 
 #if defined(_AIX)
-#define MO_MACHINE_TYPE "AIX"
+#define MO_MACHINE_TYPE "IBM AIX"
 #endif
 #if defined(__MACHTEN__)
 #define MO_MACHINE_TYPE "PowerMachTen"
@@ -209,36 +209,39 @@ typedef enum
 #if defined(__DragonFly__)
 #define MO_MACHINE_TYPE "DragonFly BSD"
 #endif
-#if defined(__GNU__) || defined(__gnu_hurd__)
-#define MO_MACHINE_TYPE "GNU Hurd"
-#endif
-#if defined(__hpux)
+#if defined(_hpux)
 #define MO_MACHINE_TYPE "HP-UX"
 #endif
 #if defined(__sgi)
-#define MO_MACHINE_TYPE "Silicon Graphics"
+#define MO_MACHINE_TYPE "Silicon Graphics IRIX"
 #endif
 #if defined(ultrix)
 #define MO_MACHINE_TYPE "DEC Ultrix"
 #endif
+#if defined (osf) || defined(__osf)
+#define MO_MACHINE_TYPE "DEC/Compaq Tru64"
+#endif
 #if defined(__linux__)
+# if(defined(__GLIBC__) || defined(__GNU_LIBRARY__))
+#define MO_MACHINE_TYPE "GNU/Linux"
+# else
 #define MO_MACHINE_TYPE "Linux"
+# endif
+#endif
+#if defined(__GNU__) || defined(__gnu_hurd__)
+#define MO_MACHINE_TYPE "GNU Hurd"
 #endif
 #if defined(_IBMR2)
 #define MO_MACHINE_TYPE "RS/6000 AIX"
 #endif
-#if defined(sun) && !defined(SOLARIS)
-#define MO_MACHINE_TYPE "Sun"
-#else
-#if defined(__illumos__)
+#if defined(sun) || defined(__sun)
+# if (defined(__SVR4) || defined(__svr4__)) && !defined(__illumos__)
+#define MO_MACHINE_TYPE "Solaris"
+# elif (defined(__SVR4) || defined(__svr4__)) && defined(__illumos__)
 #define MO_MACHINE_TYPE "illumos"
-#else
-#if defined(SOLARIS)
-#define MO_MACHINE_TYPE "SOLARIS"
-#endif
-#endif
-#if defined(__alpha)
-#define MO_MACHINE_TYPE "DEC Alpha"
+# else
+#define MO_MACHINE_TYPE "SunOS"
+# endif
 #endif
 #if defined(NeXT)
 #define MO_MACHINE_TYPE "NeXTSTEP"
@@ -249,15 +252,15 @@ typedef enum
 #if defined(VMS)
 #define MO_MACHINE_TYPE "VMS"
 #endif
-#if defined(NeXT)
-#define MO_MACHINE_TYPE "NeXT"
+#if defined(__CYGWIN__)
+#define MO_MACHINE_TYPE "Cygwin (MS Windows)"
 #endif
-#if defined (sco)
-#if defined (_SCO_DS)
-#define MO_MACHINE_TYPE "SCO OpenServer 5"
-#else /* _SCO_DS */
-#define MO_MACHINE_TYPE "SCO Unix"
-#endif /* _SCO_DS */
+#if defined(sco)
+# if defined(_SCO_DS)
+#define MO_MACHINE_TYPE "SCO OpenServer"
+# else /* _SCO_DS */
+#define MO_MACHINE_TYPE "SCO UnixWare"
+# endif /* _SCO_DS */
 #endif /* SCO */
 
 #ifndef MO_MACHINE_TYPE

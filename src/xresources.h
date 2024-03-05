@@ -169,16 +169,18 @@ static XtResource resources[] = {
   { "trackVisitedAnchors", "TrackVisitedAnchors", XtRBoolean, sizeof (Boolean),
       offset (track_visited_anchors), XtRString, "True" },
 
-  { "uncompressCommand", "UncompressCommand", XtRString, sizeof (char *), 
 #if defined(__linux__) || (__FreeBSD__) || (__NetBSD__)
+  { "uncompressCommand", "UncompressCommand", XtRString, sizeof (char *), 
       offset (uncompress_command), XtRString, "uncompress.real" },
 #else
+  { "uncompressCommand", "UncompressCommand", XtRString, sizeof (char *), 
       offset (uncompress_command), XtRString, "uncompress" },
 #endif
-  { "gunzipCommand", "GunzipCommand", XtRString, 
 #if defined(__linux__) || (__FreeBSD__) || (__NetBSD__)
+  { "gunzipCommand", "GunzipCommand", XtRString, 
       sizeof (char *), offset (gunzip_command), XtRString, "gzip -d -f -n" },
 #else
+  { "gunzipCommand", "GunzipCommand", XtRString, 
       sizeof (char *), offset (gunzip_command), XtRString, "gunzip -f -n" },
 #endif
   { "bunzipCommand", "BunzipCommand", XtRString,
