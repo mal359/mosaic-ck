@@ -1,4 +1,4 @@
-***** THIS IS MOSAIC 2.7ck8 *****
+***** THIS IS MOSAIC 2.7ck13 *****
 This is a hacked version of Mosaic 2.7b5 adjusted for my own personal use and
 to function decently well in today's WWW environment. It is not supported
 by NCSA or UIUC, and arguably I don't support it either, so don't send me
@@ -105,9 +105,9 @@ SGI).  See the Makefile for information on how to have monochrome
 resources by default.  On the command line, the flags '-mono' and
 '-color' allow you to switch resource configurations at runtime.
 
-For your convenience, three corresponding X app-defaults files are
+For your convenience, four corresponding X app-defaults files are
 included in this distribution: app-defaults.color,
-app-defaults.color-sgi, and app-defaults.mono.
+app-defaults.color-sgi, app-defaults.mono, and app-defaults.mal.
 
 
 Bug Reports and Comments
